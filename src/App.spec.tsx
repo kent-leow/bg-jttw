@@ -143,7 +143,7 @@ describe("App", () => {
             return {
               answer: { type: "answer", sdp: "joiner-sdp" },
               peerConnection: createFakePeerConnection(),
-              dataChannel: dataChannel as unknown as RTCDataChannel,
+              dataChannel: Promise.resolve(dataChannel as unknown as RTCDataChannel),
             };
           },
         }}

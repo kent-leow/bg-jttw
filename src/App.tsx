@@ -438,6 +438,7 @@ function JoinFlow({ dependencies, onBack }: { dependencies?: JoinFlowDependencie
     localHub: RoomHub;
     transport: DataChannelTransport;
   } | null>(null);
+  const [connectionTimedOut, setConnectionTimedOut] = useState(false);
 
   const generateAnswerWrapper = useCallback(
     async (hostOffer: unknown): Promise<JoinAnswerResult> => {
@@ -447,14 +448,32 @@ function JoinFlow({ dependencies, onBack }: { dependencies?: JoinFlowDependencie
       const { publicKey, privateKey } = await generateKeyPairImpl();
       const publicKeyJwk = await exportPublicKeyJwk(publicKey);
       const playerId = (dependencies?.generatePlayerId ?? (() => crypto.randomUUID()))();
-      const transport = createDataChannelTransport(result.dataChannel);
-      const localHub = new RoomHub();
-      bridgeTransportIntoLocalHub(transport, localHub);
-      setConnected({ playerId, privateKey, localHub, transport });
+      // Must not block on this: the data channel can only open once the host has scanned the
+      // answer this function is about to return, so it's wired up in the background instead.
+      result.dataChannel
+        .then((dataChannel) => {
+          const transport = createDataChannelTransport(dataChannel);
+          const localHub = new RoomHub();
+          bridgeTransportIntoLocalHub(transport, localHub);
+          setConnected({ playerId, privateKey, localHub, transport });
+        })
+        .catch(() => {
+          setConnectionTimedOut(true);
+        });
       return { ...result, answer: { ...result.answer, publicKeyJwk, playerId } } as unknown as JoinAnswerResult;
     },
     [dependencies],
   );
+
+  if (connectionTimedOut) {
+    return (
+      <section className="page page--centered">
+        <p role="alert" className="alert-text">
+          Could not connect to the host in time. Please try scanning again.
+        </p>
+      </section>
+    );
+  }
 
   if (!connected) {
     return (

@@ -72,7 +72,7 @@ function makeJoinDependencies(
       return {
         answer: { type: "answer" as const, sdp: `answer-${offer.sdp}` },
         peerConnection: createFakePeerConnection(),
-        dataChannel: channelB as unknown as RTCDataChannel,
+        dataChannel: Promise.resolve(channelB as unknown as RTCDataChannel),
       };
     },
     generateKeyPair: async () => {

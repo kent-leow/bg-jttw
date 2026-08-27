@@ -19,10 +19,13 @@ function isValidOfferPayload(value: unknown): value is OfferPayload {
 export interface JoinAnswerResult {
   readonly answer: AnswerPayload;
   readonly peerConnection: RTCPeerConnection;
-  readonly dataChannel: RTCDataChannel;
+  // A promise, not the channel itself: the channel can only actually open once the host has
+  // scanned this very answer back (see the "no premature await" note below), which routinely
+  // takes much longer than a fixed connection timeout for the underlying ICE handshake.
+  readonly dataChannel: Promise<RTCDataChannel>;
 }
 
-const DEFAULT_DATA_CHANNEL_TIMEOUT_MS = 5000;
+const DEFAULT_DATA_CHANNEL_TIMEOUT_MS = 120_000;
 
 function waitForDataChannel(peerConnection: RTCPeerConnection, timeoutMs: number): Promise<RTCDataChannel> {
   return new Promise((resolve, reject) => {
@@ -73,6 +76,8 @@ export async function generateJoinAnswer(
   if (!sdp) {
     throw new Error("Failed to generate a local SDP answer.");
   }
-  const dataChannel = await dataChannelPromise;
-  return { answer: { type: "answer", sdp: stripTcpCandidates(sdp) }, peerConnection, dataChannel };
+  // Must NOT await dataChannelPromise here: the data channel can only open once the host has
+  // received *this* answer (via QR) and completed setRemoteDescription on their side — awaiting
+  // it here would deadlock forever, since the answer would never be returned to show/scan.
+  return { answer: { type: "answer", sdp: stripTcpCandidates(sdp) }, peerConnection, dataChannel: dataChannelPromise };
 }
