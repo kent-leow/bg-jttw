@@ -9,7 +9,9 @@ export interface QrScannerProps {
 }
 
 function defaultRequestCamera(): Promise<MediaStream> {
-  return navigator.mediaDevices.getUserMedia({ video: true });
+  // "environment" prefers the rear/back camera (what you point at a QR code); falls back to
+  // whatever camera is available on devices without one (e.g. laptops) since it's not "exact".
+  return navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
 }
 
 /** Real camera scan loop: draws video frames to an offscreen canvas and decodes them with jsQR. */
