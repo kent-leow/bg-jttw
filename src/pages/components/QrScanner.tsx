@@ -67,6 +67,7 @@ export function QrScanner({
         }
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
+          void videoRef.current.play();
         }
         cleanup = startScanLoop(stream, (payload) => {
           if (payload && !decodedRef.current) {
@@ -88,7 +89,7 @@ export function QrScanner({
 
   return (
     <div className="scan-viewport">
-      <video ref={videoRef} aria-label="QR scanner viewport" muted playsInline />
+      <video ref={videoRef} aria-label="QR scanner viewport" autoPlay muted playsInline />
     </div>
   );
 }
