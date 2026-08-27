@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { RoomHub, type RoomHubMessage } from "../connection/roomHub";
+import { useTranslation } from "../i18n";
+import { LanguageToggle } from "./components/LanguageToggle";
 
 export interface LobbyPlayer {
   readonly id: string;
@@ -30,6 +32,7 @@ export interface LobbyPageProps {
 
 export function LobbyPage({ roomHub, selfPlayerId, playerCount, isHost, onStartGame }: LobbyPageProps) {
   const [players, setPlayers] = useState<readonly LobbyPlayer[]>([]);
+  const { t } = useTranslation();
 
   useEffect(() => {
     function handleMessage(message: RoomHubMessage) {
@@ -45,8 +48,9 @@ export function LobbyPage({ roomHub, selfPlayerId, playerCount, isHost, onStartG
 
   return (
     <section>
-      <h1>Lobby</h1>
-      <p>{`${players.length}/${playerCount} joined`}</p>
+      <LanguageToggle />
+      <h1>{t("lobby.title")}</h1>
+      <p>{t("lobby.seatCounter", { joined: players.length, total: playerCount })}</p>
       <ul aria-label="Connected players">
         {players.map((player) => (
           <li key={player.id} data-testid="player-portrait-chip">
@@ -56,7 +60,7 @@ export function LobbyPage({ roomHub, selfPlayerId, playerCount, isHost, onStartG
       </ul>
       {isHost && (
         <button type="button" disabled={!seatsFilled} onClick={onStartGame}>
-          Start Game
+          {t("common.startGame")}
         </button>
       )}
     </section>

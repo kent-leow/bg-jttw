@@ -2,6 +2,8 @@ import { useCallback, useState } from "react";
 import { generateJoinAnswer } from "../connection/generateJoinAnswer";
 import { decodeQrPayload, encodeQrPayload } from "../connection/qrCodec";
 import type { OfferPayload } from "../connection/generateHostOffer";
+import { useTranslation } from "../i18n";
+import { LanguageToggle } from "./components/LanguageToggle";
 import { QrDisplay } from "./components/QrDisplay";
 import { QrScanner, type QrScannerProps } from "./components/QrScanner";
 
@@ -17,6 +19,7 @@ export function JoinPage({ generateAnswer = generateJoinAnswer, requestCamera, s
   const [status, setStatus] = useState<JoinPageStatus>("scanning");
   const [encodedAnswer, setEncodedAnswer] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const { t } = useTranslation();
 
   const handleDecodedOffer = useCallback(
     (rawPayload: string) => {
@@ -25,7 +28,7 @@ export function JoinPage({ generateAnswer = generateJoinAnswer, requestCamera, s
         hostOffer = decodeQrPayload<OfferPayload>(rawPayload);
       } catch {
         setStatus("error");
-        setErrorMessage("The scanned code was not a valid host invite.");
+        setErrorMessage(t("joinPage.invalidOffer"));
         return;
       }
 
@@ -36,10 +39,10 @@ export function JoinPage({ generateAnswer = generateJoinAnswer, requestCamera, s
         })
         .catch(() => {
           setStatus("error");
-          setErrorMessage("Could not connect to the host. Please try scanning again.");
+          setErrorMessage(t("joinPage.connectionFailed"));
         });
     },
-    [generateAnswer],
+    [generateAnswer, t],
   );
 
   const handleScanError = useCallback((message: string) => {
@@ -49,14 +52,15 @@ export function JoinPage({ generateAnswer = generateJoinAnswer, requestCamera, s
 
   return (
     <section>
-      <h1>Join a Game</h1>
+      <LanguageToggle />
+      <h1>{t("joinPage.title")}</h1>
       {status === "scanning" && (
         <QrScanner onDecoded={handleDecodedOffer} onError={handleScanError} requestCamera={requestCamera} startScanLoop={startScanLoop} />
       )}
       {status === "error" && <p role="alert">{errorMessage}</p>}
       {status === "connected" && encodedAnswer && (
         <>
-          <p>Show this code to the host:</p>
+          <p>{t("joinPage.showToHost")}</p>
           <QrDisplay payload={encodedAnswer} />
         </>
       )}

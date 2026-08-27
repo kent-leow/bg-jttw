@@ -3,6 +3,7 @@ import { decryptOwnPayload } from "../crypto/decryptOwnPayload";
 import type { EncryptedEnvelope } from "../crypto/encryptForPlayer";
 import type { HiddenKnowledge } from "../engine/hiddenKnowledge";
 import type { RoleDefinition } from "../engine/types";
+import { useTranslation } from "../i18n";
 
 export interface RoleRevealPayload {
   readonly role: RoleDefinition;
@@ -18,6 +19,7 @@ export interface RoleRevealPageProps {
 export function RoleRevealPage({ privateKey, encryptedEnvelope, decrypt = decryptOwnPayload }: RoleRevealPageProps) {
   const [payload, setPayload] = useState<RoleRevealPayload | null>(null);
   const [failed, setFailed] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     let cancelled = false;
@@ -42,7 +44,7 @@ export function RoleRevealPage({ privateKey, encryptedEnvelope, decrypt = decryp
   if (failed) {
     return (
       <section>
-        <p role="alert">Unable to reveal your role on this device.</p>
+        <p role="alert">{t("roleReveal.unableToReveal")}</p>
       </section>
     );
   }
@@ -50,7 +52,7 @@ export function RoleRevealPage({ privateKey, encryptedEnvelope, decrypt = decryp
   if (!payload) {
     return (
       <section>
-        <p role="status">Revealing your role…</p>
+        <p role="status">{t("roleReveal.revealing")}</p>
       </section>
     );
   }

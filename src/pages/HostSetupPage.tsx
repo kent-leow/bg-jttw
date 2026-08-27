@@ -2,6 +2,8 @@ import { useCallback, useMemo, useState } from "react";
 import { completeConnection } from "../connection/completeConnection";
 import { generateHostOffer, type OfferPayload } from "../connection/generateHostOffer";
 import { decodeQrPayload, encodeQrPayload } from "../connection/qrCodec";
+import { useTranslation } from "../i18n";
+import { LanguageToggle } from "./components/LanguageToggle";
 import { QrDisplay } from "./components/QrDisplay";
 import { QrScanner, type QrScannerProps } from "./components/QrScanner";
 
@@ -34,6 +36,7 @@ export function HostSetupPage({
   const [offer, setOffer] = useState<{ offer: OfferPayload; peerConnection: RTCPeerConnection } | null>(null);
   const [joinedCount, setJoinedCount] = useState(0);
   const [scanError, setScanError] = useState<string | null>(null);
+  const { t } = useTranslation();
 
   const requestNextOffer = useCallback(() => {
     generateOffer().then(setOffer);
@@ -57,12 +60,12 @@ export function HostSetupPage({
       try {
         answer = decodeQrPayload(rawPayload);
       } catch {
-        setScanError("The scanned code was not a valid reply code.");
+        setScanError(t("hostSetup.invalidReply"));
         return;
       }
       completeJoin(offer.peerConnection, answer).then(({ connectionEstablished }) => {
         if (!connectionEstablished) {
-          setScanError("Connection failed. Please have the player rescan and try again.");
+          setScanError(t("hostSetup.connectionFailed"));
           return;
         }
         setScanError(null);
@@ -75,7 +78,7 @@ export function HostSetupPage({
         });
       });
     },
-    [offer, completeJoin, playerCount, requestNextOffer],
+[offer, completeJoin, playerCount, requestNextOffer, t],
   );
 
   const encodedOffer = useMemo(() => (offer ? encodeQrPayload(offer.offer) : null), [offer]);
@@ -84,8 +87,9 @@ export function HostSetupPage({
   if (playerCount === null) {
     return (
       <section>
-        <h1>Host a Game</h1>
-        <p>Choose the number of players (5-10):</p>
+        <LanguageToggle />
+        <h1>{t("hostSetup.title")}</h1>
+        <p>{t("hostSetup.choosePlayerCount")}</p>
         <div role="group" aria-label="Player count">
           {PLAYER_COUNT_OPTIONS.map((count) => (
             <button key={count} type="button" onClick={() => selectPlayerCount(count)}>
@@ -99,8 +103,9 @@ export function HostSetupPage({
 
   return (
     <section>
-      <h1>Host a Game</h1>
-      <p>{`${joinedCount}/${playerCount} joined`}</p>
+      <LanguageToggle />
+      <h1>{t("hostSetup.title")}</h1>
+      <p>{t("hostSetup.seatCounter", { joined: joinedCount, total: playerCount })}</p>
       {encodedOffer && <QrDisplay payload={encodedOffer} />}
       {!seatsFilled && offer && (
         <QrScanner
@@ -113,7 +118,7 @@ export function HostSetupPage({
       )}
       {scanError && <p role="alert">{scanError}</p>}
       <button type="button" disabled={!seatsFilled} onClick={() => onStartGame?.(playerCount)}>
-        Start Game
+        {t("common.startGame")}
       </button>
     </section>
   );

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { validateTeamProposal } from "../engine/teamProposal";
 import type { Vote } from "../engine/voteResolution";
+import { useTranslation } from "../i18n";
 import type { LobbyPlayer } from "./LobbyPage";
 import { PlayerPortraitChip } from "./components/PlayerPortraitChip";
 
@@ -30,6 +31,7 @@ export function GameBoardPage({
   const [selectedTeam, setSelectedTeam] = useState<readonly string[]>([]);
   const [proposalError, setProposalError] = useState<string | null>(null);
   const [hasVoted, setHasVoted] = useState(false);
+  const { t } = useTranslation();
 
   function toggleSelect(playerId: string) {
     setSelectedTeam((current) =>
@@ -57,7 +59,7 @@ export function GameBoardPage({
 
   return (
     <section>
-      <h1>Main Game Board</h1>
+      <h1>{t("gameBoard.title")}</h1>
       <ul aria-label="Players">
         {players.map((player) => (
           <li key={player.id}>
@@ -74,24 +76,24 @@ export function GameBoardPage({
       {isLeader && (
         <div>
           <button type="button" onClick={submitProposal}>
-            Propose Team
+            {t("common.proposeTeam")}
           </button>
           {proposalError && <p role="alert">{proposalError}</p>}
         </div>
       )}
       <div>
         <button type="button" disabled={hasVoted} onClick={() => castVote("Approve")}>
-          Approve
+          {t("common.approve")}
         </button>
         <button type="button" disabled={hasVoted} onClick={() => castVote("Reject")}>
-          Reject
+          {t("common.reject")}
         </button>
       </div>
       {isHost && (
         <>
-          <p data-testid="vote-progress">{`${votedCount}/${players.length} voted`}</p>
+          <p data-testid="vote-progress">{t("gameBoard.voteProgress", { voted: votedCount, total: players.length })}</p>
           <button type="button" disabled={!allVoted} onClick={onNext}>
-            Next
+            {t("common.next")}
           </button>
         </>
       )}

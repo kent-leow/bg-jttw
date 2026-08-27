@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n";
 import type { RoleDefinition } from "../engine/types";
 
 export interface RevealedPlayer {
@@ -16,6 +17,7 @@ export interface EndGamePageProps {
 }
 
 export function EndGamePage({ result, resultReason, players, isHost, onRematch, onEndSession }: EndGamePageProps) {
+  const { t } = useTranslation();
   return (
     <section>
       <h1 data-testid="game-result">{result}</h1>
@@ -30,10 +32,10 @@ export function EndGamePage({ result, resultReason, players, isHost, onRematch, 
       {isHost && (
         <div>
           <button type="button" onClick={onRematch}>
-            Rematch
+            {t("endGame.rematch")}
           </button>
           <button type="button" onClick={onEndSession}>
-            End Session
+            {t("endGame.endSession")}
           </button>
         </div>
       )}

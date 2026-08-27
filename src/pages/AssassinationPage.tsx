@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n";
 import type { LobbyPlayer } from "./LobbyPage";
 import { PlayerPortraitChip } from "./components/PlayerPortraitChip";
 
@@ -8,17 +9,19 @@ export interface AssassinationPageProps {
 }
 
 export function AssassinationPage({ isAssassin, players, onSelectTarget }: AssassinationPageProps) {
+  const { t } = useTranslation();
+
   if (!isAssassin) {
     return (
       <section>
-        <p data-testid="assassination-suspense">The Assassin is choosing…</p>
+        <p data-testid="assassination-suspense">{t("assassination.suspense")}</p>
       </section>
     );
   }
 
   return (
     <section>
-      <h1>Choose Your Target</h1>
+      <h1>{t("assassination.title")}</h1>
       <ul aria-label="Assassination targets" data-testid="assassination-target-grid">
         {players.map((player) => (
           <li key={player.id}>
