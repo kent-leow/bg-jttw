@@ -26,14 +26,15 @@ export function waitForIceGatheringComplete(peerConnection: RTCPeerConnection): 
 export interface HostOfferResult {
   readonly offer: OfferPayload;
   readonly peerConnection: RTCPeerConnection;
+  readonly dataChannel: RTCDataChannel;
 }
 
 export async function generateHostOffer(
   createPeerConnection: () => RTCPeerConnection = () => new RTCPeerConnection(),
 ): Promise<HostOfferResult> {
   const peerConnection = createPeerConnection();
-  // A data channel is required for the offer to include an application m-line for later relay use (task-005).
-  peerConnection.createDataChannel("room");
+  // The data channel carries all post-handshake game-state traffic (task-015 dataChannelTransport).
+  const dataChannel = peerConnection.createDataChannel("room");
 
   const offerDescription = await peerConnection.createOffer();
   await peerConnection.setLocalDescription(offerDescription);
@@ -43,5 +44,5 @@ export async function generateHostOffer(
   if (!sdp) {
     throw new Error("Failed to generate a local SDP offer.");
   }
-  return { offer: { type: "offer", sdp }, peerConnection };
+  return { offer: { type: "offer", sdp }, peerConnection, dataChannel };
 }

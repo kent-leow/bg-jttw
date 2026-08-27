@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 import { decryptOwnPayload } from "../crypto/decryptOwnPayload";
 import { encryptForPlayer } from "../crypto/encryptForPlayer";
 import { generateKeyPair } from "../crypto/keyPair";
+import { createDataChannelTransport } from "./dataChannelTransport";
+import { createLoopbackChannelPair } from "./generateHostOffer.spec";
 import { RoomHub, type RoomHubMessage } from "./roomHub";
 
 describe("RoomHub", () => {
@@ -40,5 +42,28 @@ describe("RoomHub", () => {
 
     const decrypted = await decryptOwnPayload(playerB.privateKey, envelope);
     expect(decrypted).toEqual(secretRole);
+  });
+
+  it("delivers a broadcast and a direct message to a peer whose onMessage forwards through a real data channel transport", () => {
+    const hub = new RoomHub();
+    const [hostSideChannel, playerSideChannel] = createLoopbackChannelPair();
+    hostSideChannel.open();
+    playerSideChannel.open();
+    const hostSideTransport = createDataChannelTransport(hostSideChannel as unknown as RTCDataChannel);
+    const playerSideTransport = createDataChannelTransport(playerSideChannel as unknown as RTCDataChannel);
+    const receivedOnPlayerSide = vi.fn();
+    playerSideTransport.onMessage(receivedOnPlayerSide);
+
+    hub.connect({ playerId: "p1", onMessage: (message) => hostSideTransport.send(message) });
+
+    hub.broadcastPublicState({ phase: "Lobby" });
+    expect(receivedOnPlayerSide).toHaveBeenCalledWith({ kind: "broadcast", payload: { phase: "Lobby" } });
+
+    hub.relayToPlayer("p1", { ciphertext: "opaque" });
+    expect(receivedOnPlayerSide).toHaveBeenCalledWith({
+      kind: "direct",
+      targetPlayerId: "p1",
+      payload: { ciphertext: "opaque" },
+    });
   });
 });
