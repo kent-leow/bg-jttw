@@ -1,4 +1,5 @@
 import { useTranslation } from "../i18n";
+import { AssassinationSuspenseScene } from "../theme/scenes/assassinationSuspenseScene";
 import type { LobbyPlayer } from "./LobbyPage";
 import { PlayerPortraitChip } from "./components/PlayerPortraitChip";
 
@@ -14,6 +15,7 @@ export function AssassinationPage({ isAssassin, players, onSelectTarget }: Assas
   if (!isAssassin) {
     return (
       <section className="page page--centered">
+        <AssassinationSuspenseScene />
         <p data-testid="assassination-suspense" className="status-text">
           {t("assassination.suspense")}
         </p>

@@ -339,6 +339,107 @@ button {
   font-style: italic;
 }
 
+/* Ink-wash decorative scenes (Landing, Journey Path, Assassination suspense) — pure SVG/CSS,
+   no WebGL/canvas required. */
+.ink-scene {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.ink-scene svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.ink-scene--journey {
+  max-width: 400px;
+}
+
+.ink-scene--suspense {
+  max-width: 220px;
+}
+
+.ink-scene__cloud {
+  animation: ink-drift 14s ease-in-out infinite alternate;
+}
+
+.ink-scene__cloud--2 {
+  animation-duration: 18s;
+  animation-delay: -4s;
+}
+
+@keyframes ink-drift {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(18px);
+  }
+}
+
+.ink-scene__traveler {
+  animation: ink-bob 1.6s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes ink-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.ink-scene__swirl--1 {
+  animation: ink-spin 6s linear infinite;
+  transform-origin: 100px 100px;
+}
+
+.ink-scene__swirl--2 {
+  animation: ink-spin-reverse 4.5s linear infinite;
+  transform-origin: 100px 100px;
+}
+
+.ink-scene__swirl--3 {
+  animation: ink-pulse 2.4s ease-in-out infinite;
+  transform-origin: 100px 100px;
+}
+
+@keyframes ink-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes ink-spin-reverse {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes ink-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.2;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.32;
+  }
+}
+
+
 .alert-text {
   color: var(--vermillion-dark);
   font-weight: 600;

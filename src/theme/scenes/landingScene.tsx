@@ -1,74 +1,43 @@
-import { useEffect, useRef, useState } from "react";
-import * as THREE from "three";
-
-export function defaultDetectWebGL(): boolean {
-  try {
-    const canvas = document.createElement("canvas");
-    return !!(canvas.getContext("webgl") ?? canvas.getContext("experimental-webgl"));
-  } catch {
-    return false;
-  }
-}
-
-export interface LandingSceneProps {
-  readonly detectWebGL?: () => boolean;
-}
-
-/** Ink-wash mountain/cloud drift scene (three.js) for the Landing page; falls back to a static image without WebGL. */
-export function LandingScene({ detectWebGL = defaultDetectWebGL }: LandingSceneProps) {
-  const [webglAvailable] = useState(() => detectWebGL());
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    if (!webglAvailable || !canvasRef.current) {
-      return;
-    }
-    let frameId = 0;
-    let renderer: THREE.WebGLRenderer | undefined;
-    try {
-      const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
-      camera.position.z = 6;
-      renderer = new THREE.WebGLRenderer({ canvas: canvasRef.current, alpha: true });
-
-      // Low-poly, flat-shaded mountain silhouette drifting slowly, per design.md's ink-wash 3D style.
-      const mountain = new THREE.Mesh(
-        new THREE.ConeGeometry(2, 3, 5),
-        new THREE.MeshBasicMaterial({ color: 0x1a1a1a, wireframe: true }),
-      );
-      scene.add(mountain);
-
-      const animate = () => {
-        mountain.rotation.y += 0.0015;
-        renderer?.render(scene, camera);
-        frameId = requestAnimationFrame(animate);
-      };
-      animate();
-    } catch {
-      // Real WebGL context creation failed at runtime despite detectWebGL() reporting available;
-      // the <canvas> placeholder still renders without crashing the page.
-    }
-    return () => {
-      cancelAnimationFrame(frameId);
-      renderer?.dispose();
-    };
-  }, [webglAvailable]);
-
-  if (!webglAvailable) {
-    return (
-      <img
-        src="/theme/landing-fallback.png"
-        alt="Ink-wash mountains and drifting clouds"
-        data-testid="landing-scene-fallback"
-      />
-    );
-  }
-
+/** Ink-wash (水墨) mountain silhouette scene with drifting clouds and a rising sun, for the Landing page. */
+export function LandingScene() {
   return (
-    <canvas
-      ref={canvasRef}
-      data-testid="landing-scene-canvas"
-      aria-label="Animated ink-wash mountain and cloud scene"
-    />
+    <div className="ink-scene ink-scene--landing" data-testid="landing-scene">
+      <svg viewBox="0 0 400 220" role="img" aria-label="Ink-wash mountains beneath a rising sun, with drifting clouds">
+        <defs>
+          <linearGradient id="landing-sky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="var(--rice-paper-soft)" />
+            <stop offset="100%" stopColor="var(--rice-paper)" />
+          </linearGradient>
+        </defs>
+        <rect x="0" y="0" width="400" height="220" fill="url(#landing-sky)" />
+        <circle cx="300" cy="72" r="34" fill="var(--vermillion)" opacity="0.85" />
+        <path
+          className="ink-scene__cloud ink-scene__cloud--1"
+          d="M10,58 q22,-20 42,-4 q18,-16 36,2 q18,-12 30,6 q-2,16 -22,14 l-74,2 q-18,0 -12,-20 Z"
+          fill="var(--rice-paper)"
+        />
+        <path
+          className="ink-scene__cloud ink-scene__cloud--2"
+          d="M180,36 q18,-16 34,-2 q16,-14 28,4 q-2,14 -18,12 l-58,1 q-14,0 -10,-14 Z"
+          fill="var(--rice-paper)"
+          opacity="0.9"
+        />
+        <path
+          d="M0,190 Q60,110 110,170 Q150,120 190,175 Q230,125 270,178 Q320,130 400,185 L400,220 L0,220 Z"
+          fill="var(--indigo)"
+          opacity="0.35"
+        />
+        <path
+          d="M0,205 Q50,150 100,195 Q140,160 190,200 Q240,155 300,198 Q350,165 400,202 L400,220 L0,220 Z"
+          fill="var(--indigo)"
+          opacity="0.6"
+        />
+        <path
+          d="M0,220 Q40,175 90,212 Q130,180 180,214 Q230,178 290,215 Q340,182 400,216 L400,220 Z"
+          fill="var(--ink-black)"
+        />
+      </svg>
+    </div>
   );
 }
+

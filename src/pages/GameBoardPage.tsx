@@ -2,6 +2,7 @@ import { useState } from "react";
 import { validateTeamProposal } from "../engine/teamProposal";
 import type { Vote } from "../engine/voteResolution";
 import { useTranslation } from "../i18n";
+import { JourneyPathScene } from "../theme/scenes/journeyPathScene";
 import type { LobbyPlayer } from "./LobbyPage";
 import { PlayerPortraitChip } from "./components/PlayerPortraitChip";
 
@@ -12,6 +13,7 @@ export interface GameBoardPageProps {
   readonly isHost: boolean;
   readonly isLeader: boolean;
   readonly votes: Readonly<Record<string, Vote>>;
+  readonly resolvedMissionCount?: number;
   readonly onProposeTeam?: (team: readonly string[]) => void;
   readonly onCastVote?: (vote: Vote) => void;
   readonly onNext?: () => void;
@@ -24,6 +26,7 @@ export function GameBoardPage({
   isHost,
   isLeader,
   votes,
+  resolvedMissionCount = 0,
   onProposeTeam,
   onCastVote,
   onNext,
@@ -60,6 +63,7 @@ export function GameBoardPage({
   return (
     <section className="page page--centered">
       <h1>{t("gameBoard.title")}</h1>
+      <JourneyPathScene resolvedMissionCount={resolvedMissionCount} />
       <ul aria-label="Players" className="player-row">
         {players.map((player) => (
           <li key={player.id}>

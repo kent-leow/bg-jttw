@@ -1,66 +1,35 @@
-import { useEffect, useRef, useState } from "react";
-import * as THREE from "three";
-import { defaultDetectWebGL } from "./landingScene";
-
-export interface AssassinationSuspenseSceneProps {
-  readonly detectWebGL?: () => boolean;
-}
-
-/** Swirling ink-cloud suspense scene (three.js) shown to non-Assassin devices; falls back to a static image without WebGL. */
-export function AssassinationSuspenseScene({ detectWebGL = defaultDetectWebGL }: AssassinationSuspenseSceneProps) {
-  const [webglAvailable] = useState(() => detectWebGL());
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    if (!webglAvailable || !canvasRef.current) {
-      return;
-    }
-    let frameId = 0;
-    let renderer: THREE.WebGLRenderer | undefined;
-    try {
-      const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
-      camera.position.z = 5;
-      renderer = new THREE.WebGLRenderer({ canvas: canvasRef.current, alpha: true });
-
-      const cloud = new THREE.Mesh(
-        new THREE.TorusKnotGeometry(1, 0.3, 32, 8),
-        new THREE.MeshBasicMaterial({ color: 0x3b3b6d, wireframe: true }),
-      );
-      scene.add(cloud);
-
-      const animate = () => {
-        cloud.rotation.x += 0.004;
-        cloud.rotation.y += 0.006;
-        renderer?.render(scene, camera);
-        frameId = requestAnimationFrame(animate);
-      };
-      animate();
-    } catch {
-      // Real WebGL context creation failed at runtime despite detectWebGL() reporting available;
-      // the <canvas> placeholder still renders without crashing the page.
-    }
-    return () => {
-      cancelAnimationFrame(frameId);
-      renderer?.dispose();
-    };
-  }, [webglAvailable]);
-
-  if (!webglAvailable) {
-    return (
-      <img
-        src="/theme/assassination-suspense-fallback.png"
-        alt="Swirling ink clouds"
-        data-testid="assassination-suspense-scene-fallback"
-      />
-    );
-  }
-
+/** Swirling ink-cloud suspense scene shown to non-Assassin devices during the Assassination Phase. */
+export function AssassinationSuspenseScene() {
   return (
-    <canvas
-      ref={canvasRef}
-      data-testid="assassination-suspense-scene-canvas"
-      aria-label="Animated swirling ink-cloud scene"
-    />
+    <div className="ink-scene ink-scene--suspense" data-testid="assassination-suspense-scene">
+      <svg viewBox="0 0 200 200" role="img" aria-label="Swirling ink clouds">
+        <circle
+          className="ink-scene__swirl ink-scene__swirl--1"
+          cx="100"
+          cy="100"
+          r="72"
+          fill="none"
+          stroke="var(--indigo)"
+          strokeWidth="14"
+          strokeLinecap="round"
+          strokeDasharray="150 300"
+          opacity="0.55"
+        />
+        <circle
+          className="ink-scene__swirl ink-scene__swirl--2"
+          cx="100"
+          cy="100"
+          r="48"
+          fill="none"
+          stroke="var(--ink-black)"
+          strokeWidth="10"
+          strokeLinecap="round"
+          strokeDasharray="90 200"
+          opacity="0.5"
+        />
+        <circle className="ink-scene__swirl ink-scene__swirl--3" cx="100" cy="100" r="22" fill="var(--vermillion)" opacity="0.2" />
+      </svg>
+    </div>
   );
 }
+

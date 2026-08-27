@@ -222,6 +222,7 @@ function GameChrome({
       isHost={isHost}
       isLeader={gameState.leaderId === selfPlayerId}
       votes={gameState.votes}
+      resolvedMissionCount={gameState.missionResults.length}
       onProposeTeam={proposeTeam}
       onCastVote={castVote}
       onNext={() => {}}

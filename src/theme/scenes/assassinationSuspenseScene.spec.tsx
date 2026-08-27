@@ -3,13 +3,9 @@ import { describe, expect, it } from "vitest";
 import { AssassinationSuspenseScene } from "./assassinationSuspenseScene";
 
 describe("AssassinationSuspenseScene", () => {
-  it("falls back to a static image when WebGL is unavailable", () => {
-    render(<AssassinationSuspenseScene detectWebGL={() => false} />);
-    expect(screen.getByTestId("assassination-suspense-scene-fallback")).toBeInTheDocument();
-  });
-
-  it("renders the animated canvas when WebGL is available", () => {
-    render(<AssassinationSuspenseScene detectWebGL={() => true} />);
-    expect(screen.getByTestId("assassination-suspense-scene-canvas")).toBeInTheDocument();
+  it("renders the swirling ink-cloud suspense scene", () => {
+    render(<AssassinationSuspenseScene />);
+    expect(screen.getByTestId("assassination-suspense-scene")).toBeInTheDocument();
   });
 });
+
