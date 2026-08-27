@@ -382,6 +382,9 @@ function HostFlow({ dependencies, onBack }: { dependencies?: HostFlowDependencie
   }, []);
 
   const handleEndSession = useCallback(() => {
+    // Tell every connected joiner before severing the connections that deliver this message, so
+    // they see an explicit "session ended" state instead of silently hanging forever.
+    hubRef.current?.broadcastPublicState({ kind: "sessionEnded" });
     const peerConnections = Array.from(peersRef.current.values()).map((p) => p.peerConnection);
     endSession(peerConnections, () => {
       hubRef.current?.disconnect(identity?.playerId ?? "");
@@ -484,6 +487,11 @@ function JoinFlow({ dependencies, onBack }: { dependencies?: JoinFlowDependencie
         <p role="alert" className="alert-text">
           Could not connect to the host in time. Please try scanning again.
         </p>
+        {onBack && (
+          <button type="button" className="btn btn--primary" onClick={onBack}>
+            Back
+          </button>
+        )}
       </section>
     );
   }
@@ -499,13 +507,15 @@ function JoinFlow({ dependencies, onBack }: { dependencies?: JoinFlowDependencie
     );
   }
 
-  return <JoinFlowInGame connected={connected} />;
+  return <JoinFlowInGame connected={connected} onBack={onBack} />;
 }
 
 function JoinFlowInGame({
   connected,
+  onBack,
 }: {
   connected: { playerId: string; privateKey: CryptoKey; localHub: RoomHub; transport: DataChannelTransport };
+  onBack?: () => void;
 }) {
   const transport = useMemo<PlayerActionTransport>(
     () => ({ send: (message) => connected.transport.send(message) }),
@@ -533,6 +543,21 @@ function JoinFlowInGame({
   }, [connected.playerId, hookResult.gameState, hookResult.roleInfo]);
 
   const players: LobbyPlayer[] = (hookResult.gameState?.players ?? []).map((id) => ({ id, displayName: id }));
+
+  if (hookResult.sessionEnded) {
+    return (
+      <section className="page page--centered">
+        <p role="alert" className="alert-text">
+          The host ended this session.
+        </p>
+        {onBack && (
+          <button type="button" className="btn btn--primary" onClick={onBack}>
+            Back
+          </button>
+        )}
+      </section>
+    );
+  }
 
   if (!hookResult.gameState) {
     return (

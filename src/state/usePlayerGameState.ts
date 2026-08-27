@@ -27,6 +27,7 @@ export interface UsePlayerGameStateParams {
 export interface UsePlayerGameStateResult {
   readonly gameState: PublicGameStateView | null;
   readonly roleInfo: PlayerRoleInfo | null;
+  readonly sessionEnded: boolean;
   proposeTeam(teamPlayerIds: readonly string[]): void;
   castVote(vote: Vote): void;
   submitMissionCard(card: MissionCard): void;
@@ -35,6 +36,10 @@ export interface UsePlayerGameStateResult {
 
 function isPublicGameStateView(payload: unknown): payload is PublicGameStateView {
   return typeof payload === "object" && payload !== null && (payload as { kind?: unknown }).kind === "gameState";
+}
+
+function isSessionEndedMessage(payload: unknown): boolean {
+  return typeof payload === "object" && payload !== null && (payload as { kind?: unknown }).kind === "sessionEnded";
 }
 
 /**
@@ -49,15 +54,19 @@ export function usePlayerGameState({
 }: UsePlayerGameStateParams): UsePlayerGameStateResult {
   const [gameState, setGameState] = useState<PublicGameStateView | null>(null);
   const [roleInfo, setRoleInfo] = useState<PlayerRoleInfo | null>(null);
+  const [sessionEnded, setSessionEnded] = useState(false);
 
   useEffect(() => {
     setGameState(null);
     setRoleInfo(null);
+    setSessionEnded(false);
 
     function handleMessage(message: RoomHubMessage) {
       if (message.kind === "broadcast") {
         if (isPublicGameStateView(message.payload)) {
           setGameState(message.payload);
+        } else if (isSessionEndedMessage(message.payload)) {
+          setSessionEnded(true);
         }
         return;
       }
@@ -107,5 +116,5 @@ export function usePlayerGameState({
     [transport],
   );
 
-  return { gameState, roleInfo, proposeTeam, castVote, submitMissionCard, submitAssassinationGuess };
+  return { gameState, roleInfo, sessionEnded, proposeTeam, castVote, submitMissionCard, submitAssassinationGuess };
 }

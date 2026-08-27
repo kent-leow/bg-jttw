@@ -60,6 +60,22 @@ describe("usePlayerGameState", () => {
     expect(resultP2.current.roleInfo).toBeNull();
   });
 
+  it("exposes sessionEnded once the host broadcasts a sessionEnded message", async () => {
+    const hub = new RoomHub();
+    const keyPair = await generateKeyPair();
+    const { result } = renderHook(() =>
+      usePlayerGameState({ roomHub: hub, playerId: "p1", privateKey: keyPair.privateKey, transport: { send: vi.fn() } }),
+    );
+
+    expect(result.current.sessionEnded).toBe(false);
+
+    act(() => {
+      hub.broadcastPublicState({ kind: "sessionEnded" });
+    });
+
+    expect(result.current.sessionEnded).toBe(true);
+  });
+
   it("each action sender transmits a correctly shaped message that the host orchestrator accepts", async () => {
     const allIds = ["p0", "p1", "p2", "p3", "p4"];
     const keyPairs = await Promise.all(allIds.map(() => generateKeyPair()));
