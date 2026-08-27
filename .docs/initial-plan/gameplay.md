@@ -46,7 +46,7 @@ game.assassinTarget         # playerId chosen in the Assassination Phase
 
 ## Reference — Role Pool
 
-Named roles always in play: Merlin, Percival, Morgana, Mordred, Oberon, Assassin (Journey to the West names per [plan.md](plan.md) AC4 mapping). Remaining seats are filled with unnamed Loyal Servants (good) / Minions (evil) until the pool matches the Good/Evil counts in the table above.
+Named roles (Journey to the West names per [plan.md](plan.md) AC4 mapping) are included in fixed priority order, capped at each side's count from the Good/Evil Split table above — Good priority: Merlin, Percival (both always fit; minimum Good count across 5-10p is 3); Evil priority: Assassin, Morgana, Mordred, Oberon (only all four fit at 10p, since Evil is 2 for 5-6p and 3 for 7-9p). Remaining seats are filled with unnamed Loyal Servants (good) / Minions (evil) until the pool matches the Good/Evil counts in the table above.
 
 ---
 
@@ -178,3 +178,6 @@ Named roles always in play: Merlin, Percival, Morgana, Mordred, Oberon, Assassin
 - Every `EMIT:` step directed at a specific player must never be readable by the host or by any other player — enforced by the encrypt/decrypt pairing in Flow 3 step 4.
 - A player's own device reload is recoverable (Flow 7); a host's device becoming permanently unavailable is not — there is no backend fallback, matching the plan's accepted trust/architecture model.
 - All `EMIT:` text is rendered in the active language (English or Chinese) per [plan.md](plan.md) AC7; this applies uniformly across every flow above.
+
+## Changelog
+- 2026-08-27: Corrected Reference — Role Pool: named Evil roles (Morgana, Mordred, Oberon, Assassin = 4) cannot all fit within the Evil count for 5-9 players (2 or 3 evil seats) as originally worded ("always in play"). Resolved via fixed priority-order inclusion capped at each side's count (Good: Merlin, Percival; Evil: Assassin, Morgana, Mordred, Oberon), mirroring official Avalon's optional-role expansion. Implemented in [task-002.md](task-002.md) `rolePool.ts`.
