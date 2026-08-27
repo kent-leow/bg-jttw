@@ -25,7 +25,8 @@ describe("JoinPage", () => {
 
   it("renders the reply QR code after a successful scan", async () => {
     const requestCamera = vi.fn().mockResolvedValue({} as MediaStream);
-    const startScanLoop = startScanLoopEmitting(encodeQrPayload({ type: "offer", sdp: "host-offer-sdp" }));
+    const encodedOffer = await encodeQrPayload({ type: "offer", sdp: "host-offer-sdp" });
+    const startScanLoop = startScanLoopEmitting(encodedOffer);
     const generateAnswer = vi.fn().mockResolvedValue({
       answer: { type: "answer", sdp: "joiner-answer-sdp" },
       peerConnection: {} as RTCPeerConnection,

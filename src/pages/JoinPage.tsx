@@ -29,23 +29,23 @@ export function JoinPage({
 
   const handleDecodedOffer = useCallback(
     (rawPayload: string) => {
-      let hostOffer: OfferPayload;
-      try {
-        hostOffer = decodeQrPayload<OfferPayload>(rawPayload);
-      } catch {
-        setStatus("error");
-        setErrorMessage(t("joinPage.invalidOffer"));
-        return;
-      }
-
-      generateAnswer(hostOffer)
-        .then(({ answer }) => {
-          setEncodedAnswer(encodeQrPayload(answer));
+      decodeQrPayload<OfferPayload>(rawPayload)
+        .catch(() => {
+          throw new Error("invalid-offer");
+        })
+        .then((hostOffer) => generateAnswer(hostOffer))
+        .then(({ answer }) => encodeQrPayload(answer))
+        .then((encoded) => {
+          setEncodedAnswer(encoded);
           setStatus("connected");
         })
-        .catch(() => {
+        .catch((error: unknown) => {
           setStatus("error");
-          setErrorMessage(t("joinPage.connectionFailed"));
+          setErrorMessage(
+            error instanceof Error && error.message === "invalid-offer"
+              ? t("joinPage.invalidOffer")
+              : t("joinPage.connectionFailed"),
+          );
         });
     },
     [generateAnswer, t],

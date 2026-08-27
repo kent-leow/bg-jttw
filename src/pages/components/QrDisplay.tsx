@@ -14,8 +14,10 @@ export function QrDisplay({ payload }: QrDisplayProps) {
     setDataUrl(null);
     setErrorMessage(null);
     // errorCorrectionLevel "L" maximizes data capacity, since a real WebRTC SDP offer/answer
-    // (with ICE candidates) is large and can otherwise exceed the QR code size limit.
-    QRCode.toDataURL(payload, { errorCorrectionLevel: "L" })
+    // (with ICE candidates) is large and can otherwise exceed the QR code size limit. A larger
+    // pixel width keeps modules crisp (not blurry) once CSS displays the code at full size,
+    // which also makes it easier for a phone camera to resolve each module while scanning.
+    QRCode.toDataURL(payload, { errorCorrectionLevel: "L", width: 480, margin: 2 })
       .then((url) => {
         if (!cancelled) {
           setDataUrl(url);

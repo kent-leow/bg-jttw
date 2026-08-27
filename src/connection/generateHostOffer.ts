@@ -1,3 +1,5 @@
+import { stripTcpCandidates } from "./sdpCompaction";
+
 export interface OfferPayload {
   readonly type: "offer";
   readonly sdp: string;
@@ -44,5 +46,5 @@ export async function generateHostOffer(
   if (!sdp) {
     throw new Error("Failed to generate a local SDP offer.");
   }
-  return { offer: { type: "offer", sdp }, peerConnection, dataChannel };
+  return { offer: { type: "offer", sdp: stripTcpCandidates(sdp) }, peerConnection, dataChannel };
 }

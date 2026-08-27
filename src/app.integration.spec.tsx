@@ -59,7 +59,7 @@ function makeJoinDependencies(
   return {
     requestCamera: async () => ({}) as MediaStream,
     startScanLoop: (_stream: MediaStream, onFrame: (payload: string | null) => void) => {
-      onFrame(encodeQrPayload({ type: "offer", sdp: network.currentOfferSdp! }));
+      encodeQrPayload({ type: "offer", sdp: network.currentOfferSdp! }).then(onFrame);
       return () => {};
     },
     generateAnswer: async (hostOffer: unknown) => {
@@ -134,7 +134,7 @@ async function connectOneJoiner(
   await waitFor(() => expect(capturedJwk).toBeDefined());
   await waitFor(() => expect(capturedPlayerId).toBeDefined());
 
-  const answerPayload = encodeQrPayload({
+  const answerPayload = await encodeQrPayload({
     type: "answer",
     sdp: `answer-${network.currentOfferSdp}`,
     publicKeyJwk: capturedJwk,

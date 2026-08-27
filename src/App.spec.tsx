@@ -65,7 +65,7 @@ describe("App", () => {
     async () => {
     const joinerKeyPair = await generateKeyPair();
     const joinerPublicKeyJwk = await crypto.subtle.exportKey("jwk", joinerKeyPair.publicKey);
-    const encodedJoinerAnswer = encodeQrPayload({
+    const encodedJoinerAnswer = await encodeQrPayload({
       type: "answer",
       sdp: "joiner-sdp",
       publicKeyJwk: joinerPublicKeyJwk,
@@ -126,7 +126,7 @@ describe("App", () => {
 
   it("a joiner's rendered page advances when a simulated host broadcast changes phase, without any local next action", async () => {
     let capturedDataChannel: FakeRTCDataChannel | undefined;
-    const hostOfferPayload = encodeQrPayload({ type: "offer", sdp: "host-sdp" });
+    const hostOfferPayload = await encodeQrPayload({ type: "offer", sdp: "host-sdp" });
 
     render(
       <App

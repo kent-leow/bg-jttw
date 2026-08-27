@@ -292,7 +292,7 @@ button {
 .qr-frame img {
   display: block;
   width: 100%;
-  max-width: 260px;
+  max-width: 360px;
 }
 
 /* Camera scan viewport. */

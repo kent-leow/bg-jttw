@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { completeConnection } from "../connection/completeConnection";
 import { generateHostOffer, type OfferPayload } from "../connection/generateHostOffer";
 import { decodeQrPayload, encodeQrPayload } from "../connection/qrCodec";
@@ -59,33 +59,51 @@ export function HostSetupPage({
       if (!offer) {
         return;
       }
-      let answer: unknown;
-      try {
-        answer = decodeQrPayload(rawPayload);
-      } catch {
-        setScanError(t("hostSetup.invalidReply"));
-        return;
-      }
-      completeJoin(offer.peerConnection, answer).then(({ connectionEstablished }) => {
-        setReadyToScan(false);
-        if (!connectionEstablished) {
-          setScanError(t("hostSetup.connectionFailed"));
-          return;
-        }
-        setScanError(null);
-        setJoinedCount((count) => {
-          const next = count + 1;
-          if (playerCount !== null && next < playerCount) {
-            requestNextOffer();
+      decodeQrPayload(rawPayload)
+        .catch(() => {
+          setScanError(t("hostSetup.invalidReply"));
+          return undefined;
+        })
+        .then((answer) => {
+          if (answer === undefined) {
+            return;
           }
-          return next;
+          return completeJoin(offer.peerConnection, answer).then(({ connectionEstablished }) => {
+            setReadyToScan(false);
+            if (!connectionEstablished) {
+              setScanError(t("hostSetup.connectionFailed"));
+              return;
+            }
+            setScanError(null);
+            setJoinedCount((count) => {
+              const next = count + 1;
+              if (playerCount !== null && next < playerCount) {
+                requestNextOffer();
+              }
+              return next;
+            });
+          });
         });
-      });
     },
 [offer, completeJoin, playerCount, requestNextOffer, t],
   );
 
-  const encodedOffer = useMemo(() => (offer ? encodeQrPayload(offer.offer) : null), [offer]);
+  const [encodedOffer, setEncodedOffer] = useState<string | null>(null);
+  useEffect(() => {
+    if (!offer) {
+      setEncodedOffer(null);
+      return;
+    }
+    let cancelled = false;
+    encodeQrPayload(offer.offer).then((encoded) => {
+      if (!cancelled) {
+        setEncodedOffer(encoded);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [offer]);
   const seatsFilled = playerCount !== null && joinedCount === playerCount;
 
   if (playerCount === null) {

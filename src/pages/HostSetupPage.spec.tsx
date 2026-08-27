@@ -40,8 +40,9 @@ describe("HostSetupPage", () => {
         }),
     );
     const requestCamera = vi.fn().mockResolvedValue({} as MediaStream);
+    const encodedAnswer = await encodeQrPayload({ type: "answer", sdp: "joiner-answer-sdp" });
     const startScanLoop = vi.fn((_stream: MediaStream, onFrame: (payload: string | null) => void) => {
-      onFrame(encodeQrPayload({ type: "answer", sdp: "joiner-answer-sdp" }));
+      onFrame(encodedAnswer);
       return () => {};
     });
 

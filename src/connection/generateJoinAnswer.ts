@@ -1,4 +1,5 @@
 import { waitForIceGatheringComplete, type OfferPayload } from "./generateHostOffer";
+import { stripTcpCandidates } from "./sdpCompaction";
 
 export interface AnswerPayload {
   readonly type: "answer";
@@ -73,5 +74,5 @@ export async function generateJoinAnswer(
     throw new Error("Failed to generate a local SDP answer.");
   }
   const dataChannel = await dataChannelPromise;
-  return { answer: { type: "answer", sdp }, peerConnection, dataChannel };
+  return { answer: { type: "answer", sdp: stripTcpCandidates(sdp) }, peerConnection, dataChannel };
 }
