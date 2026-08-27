@@ -243,7 +243,7 @@ interface ConnectedPeer {
   readonly publicKey: CryptoKey;
 }
 
-function HostFlow({ dependencies }: { dependencies?: HostFlowDependencies }) {
+function HostFlow({ dependencies, onBack }: { dependencies?: HostFlowDependencies; onBack?: () => void }) {
   const [identity, setIdentity] = useState<{ playerId: string; publicKey: CryptoKey; privateKey: CryptoKey } | null>(
     null,
   );
@@ -389,6 +389,7 @@ function HostFlow({ dependencies }: { dependencies?: HostFlowDependencies }) {
         requestCamera={dependencies?.requestCamera}
         startScanLoop={dependencies?.startScanLoop}
         onStartGame={handleSeatsFilled}
+        onBack={onBack}
       />
     );
   }
@@ -430,7 +431,7 @@ export interface JoinFlowDependencies {
   readonly generatePlayerId?: () => string;
 }
 
-function JoinFlow({ dependencies }: { dependencies?: JoinFlowDependencies }) {
+function JoinFlow({ dependencies, onBack }: { dependencies?: JoinFlowDependencies; onBack?: () => void }) {
   const [connected, setConnected] = useState<{
     playerId: string;
     privateKey: CryptoKey;
@@ -461,6 +462,7 @@ function JoinFlow({ dependencies }: { dependencies?: JoinFlowDependencies }) {
         generateAnswer={generateAnswerWrapper}
         requestCamera={dependencies?.requestCamera}
         startScanLoop={dependencies?.startScanLoop}
+        onBack={onBack}
       />
     );
   }
@@ -541,9 +543,9 @@ function NewPlayerFlow({ hostDependencies, joinDependencies }: AppProps) {
     return <LandingPage onHost={() => setFlow("host")} onJoin={() => setFlow("join")} />;
   }
   if (flow === "host") {
-    return <HostFlow dependencies={hostDependencies} />;
+    return <HostFlow dependencies={hostDependencies} onBack={() => setFlow("landing")} />;
   }
-  return <JoinFlow dependencies={joinDependencies} />;
+  return <JoinFlow dependencies={joinDependencies} onBack={() => setFlow("landing")} />;
 }
 
 export function App({ hostDependencies, joinDependencies, checkHostReachable }: AppProps) {

@@ -23,6 +23,7 @@ export interface HostSetupPageProps {
   readonly requestCamera?: QrScannerProps["requestCamera"];
   readonly startScanLoop?: QrScannerProps["startScanLoop"];
   readonly onStartGame?: (playerCount: number) => void;
+  readonly onBack?: () => void;
 }
 
 export function HostSetupPage({
@@ -31,6 +32,7 @@ export function HostSetupPage({
   requestCamera,
   startScanLoop,
   onStartGame,
+  onBack,
 }: HostSetupPageProps) {
   const [playerCount, setPlayerCount] = useState<number | null>(null);
   const [offer, setOffer] = useState<{ offer: OfferPayload; peerConnection: RTCPeerConnection } | null>(null);
@@ -99,6 +101,11 @@ export function HostSetupPage({
             </button>
           ))}
         </div>
+        {onBack && (
+          <button type="button" className="btn btn--secondary" onClick={onBack}>
+            {t("common.back")}
+          </button>
+        )}
       </section>
     );
   }

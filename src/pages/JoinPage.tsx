@@ -13,9 +13,15 @@ export interface JoinPageProps {
   readonly generateAnswer?: typeof generateJoinAnswer;
   readonly requestCamera?: QrScannerProps["requestCamera"];
   readonly startScanLoop?: QrScannerProps["startScanLoop"];
+  readonly onBack?: () => void;
 }
 
-export function JoinPage({ generateAnswer = generateJoinAnswer, requestCamera, startScanLoop }: JoinPageProps) {
+export function JoinPage({
+  generateAnswer = generateJoinAnswer,
+  requestCamera,
+  startScanLoop,
+  onBack,
+}: JoinPageProps) {
   const [status, setStatus] = useState<JoinPageStatus>("idle");
   const [encodedAnswer, setEncodedAnswer] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -71,6 +77,11 @@ export function JoinPage({ generateAnswer = generateJoinAnswer, requestCamera, s
           <p className="page__hint">{t("joinPage.showToHost")}</p>
           <QrDisplay payload={encodedAnswer} />
         </div>
+      )}
+      {onBack && status !== "connected" && (
+        <button type="button" className="btn btn--secondary" onClick={onBack}>
+          {t("common.back")}
+        </button>
       )}
     </section>
   );

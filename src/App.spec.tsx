@@ -36,6 +36,30 @@ describe("App", () => {
     await waitFor(() => expect(screen.getByRole("heading", { name: "Join a Game" })).toBeInTheDocument());
   });
 
+  it("returns to Landing from HostSetupPage via the Back button", async () => {
+    render(<App hostDependencies={{ requestCamera: neverResolves }} />);
+
+    await userEvent.click(await screen.findByRole("button", { name: "Host a Game" }));
+    await waitFor(() => expect(screen.getByRole("group", { name: "Player count" })).toBeInTheDocument());
+
+    await userEvent.click(screen.getByRole("button", { name: "Back" }));
+
+    await waitFor(() => expect(screen.getByRole("button", { name: "Host a Game" })).toBeInTheDocument());
+    expect(screen.getByRole("button", { name: "Join a Game" })).toBeInTheDocument();
+  });
+
+  it("returns to Landing from JoinPage via the Back button", async () => {
+    render(<App joinDependencies={{ requestCamera: neverResolves }} />);
+
+    await userEvent.click(await screen.findByRole("button", { name: "Join a Game" }));
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Join a Game" })).toBeInTheDocument());
+
+    await userEvent.click(screen.getByRole("button", { name: "Back" }));
+
+    await waitFor(() => expect(screen.getByRole("button", { name: "Join a Game" })).toBeInTheDocument());
+    expect(screen.getByRole("button", { name: "Host a Game" })).toBeInTheDocument();
+  });
+
   it(
     "a host completing role assignment sees RoleRevealPage render before GameBoardPage",
     async () => {
