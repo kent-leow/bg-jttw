@@ -47,4 +47,18 @@ describe("EndGamePage", () => {
     expect(screen.queryByRole("button", { name: "Rematch" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "End Session" })).not.toBeInTheDocument();
   });
+
+  it("renders the lotus seal on GoodWin and the demon-mask seal on EvilWin", () => {
+    const { rerender } = render(
+      <EndGamePage result="GoodWin" resultReason="Assassin failed to identify Merlin" players={players} isHost={false} />,
+    );
+    expect(screen.getByTestId("seal-badge-good")).toBeInTheDocument();
+    expect(screen.queryByTestId("seal-badge-evil")).not.toBeInTheDocument();
+
+    rerender(
+      <EndGamePage result="EvilWin" resultReason="3 failed missions" players={players} isHost={false} />,
+    );
+    expect(screen.getByTestId("seal-badge-evil")).toBeInTheDocument();
+    expect(screen.queryByTestId("seal-badge-good")).not.toBeInTheDocument();
+  });
 });

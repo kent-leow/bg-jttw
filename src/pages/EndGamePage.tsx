@@ -1,5 +1,6 @@
 import { useTranslation } from "../i18n";
 import type { RoleDefinition } from "../engine/types";
+import { SealBadge } from "./components/SealBadge";
 
 export interface RevealedPlayer {
   readonly id: string;
@@ -20,6 +21,7 @@ export function EndGamePage({ result, resultReason, players, isHost, onRematch, 
   const { t } = useTranslation();
   return (
     <section>
+      <SealBadge variant={result === "GoodWin" ? "good" : "evil"} />
       <h1 data-testid="game-result">{result}</h1>
       <p data-testid="game-result-reason">{resultReason}</p>
       <ul aria-label="Revealed roles">

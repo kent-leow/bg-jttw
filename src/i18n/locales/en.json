@@ -1,4 +1,6 @@
 {
+  "landing.hostGame": "Host a Game",
+  "landing.joinGame": "Join a Game",
   "common.startGame": "Start Game",
   "common.approve": "Approve",
   "common.reject": "Reject",
