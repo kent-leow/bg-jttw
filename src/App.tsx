@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { completeConnection, type CompleteConnectionResult } from "./connection/completeConnection";
 import { createDataChannelTransport, type DataChannelTransport } from "./connection/dataChannelTransport";
+import { endSession } from "./connection/endSession";
 import { generateHostOffer, type HostOfferResult } from "./connection/generateHostOffer";
 import { generateJoinAnswer, type JoinAnswerResult } from "./connection/generateJoinAnswer";
 import { HostOrchestrator, type HostOrchestratorPlayer, type PublicGameStateView } from "./connection/hostOrchestrator";
@@ -242,6 +243,7 @@ interface ConnectedPeer {
   readonly displayName: string;
   readonly transport: DataChannelTransport;
   readonly publicKey: CryptoKey;
+  readonly peerConnection: RTCPeerConnection;
 }
 
 function HostFlow({ dependencies, onBack }: { dependencies?: HostFlowDependencies; onBack?: () => void }) {
@@ -321,6 +323,7 @@ function HostFlow({ dependencies, onBack }: { dependencies?: HostFlowDependencie
         displayName: `Player ${peersRef.current.size + 2}`,
         transport,
         publicKey,
+        peerConnection,
       });
       broadcastPlayerList(identity.playerId);
       return result;
@@ -378,6 +381,15 @@ function HostFlow({ dependencies, onBack }: { dependencies?: HostFlowDependencie
     orchestratorRef.current?.requestRematch();
   }, []);
 
+  const handleEndSession = useCallback(() => {
+    const peerConnections = Array.from(peersRef.current.values()).map((p) => p.peerConnection);
+    endSession(peerConnections, () => {
+      hubRef.current?.disconnect(identity?.playerId ?? "");
+      peersRef.current.clear();
+    });
+    onBack?.();
+  }, [identity, onBack]);
+
   if (!identity) {
     return <p role="status">Preparing host session…</p>;
   }
@@ -419,7 +431,7 @@ function HostFlow({ dependencies, onBack }: { dependencies?: HostFlowDependencie
       submitMissionCard={hookResult.submitMissionCard}
       submitAssassinationGuess={hookResult.submitAssassinationGuess}
       onRematch={handleRematch}
-      onEndSession={() => hubRef.current?.disconnect(identity.playerId)}
+      onEndSession={handleEndSession}
     />
   );
 }
