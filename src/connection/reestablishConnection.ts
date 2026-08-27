@@ -20,7 +20,11 @@ export async function reestablishConnection(
 ): Promise<ReconnectResult> {
   const { reachable, currentState } = await checkHostReachable(roomId, playerId);
   if (!reachable) {
-    return { reconnected: false, message: "host unreachable, cannot resume without a backend" };
+    return {
+      reconnected: false,
+      message:
+        "Host unreachable: your connection was lost when the page reloaded, and this app has no backend to reconnect you automatically.",
+    };
   }
   return { reconnected: true, currentState };
 }

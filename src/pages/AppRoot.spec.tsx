@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { writeLocalIdentity } from "../state/localIdentity";
+import { readLocalIdentity, writeLocalIdentity } from "../state/localIdentity";
 import { AppRoot } from "./AppRoot";
 
 describe("AppRoot", () => {
@@ -49,5 +50,24 @@ describe("AppRoot", () => {
     );
 
     await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent(/host unreachable/i));
+  });
+
+  it("lets the player start over instead of being stuck on the reconnect-failed message", async () => {
+    writeLocalIdentity({ playerId: "p1", roomId: "room-1", lastKnownState: null });
+    const checkHostReachable = vi.fn().mockResolvedValue({ reachable: false });
+
+    render(
+      <AppRoot
+        renderNewPlayerEntry={() => <p data-testid="new-player-entry">new</p>}
+        renderRestoredState={() => <p>restored</p>}
+        checkHostReachable={checkHostReachable}
+      />,
+    );
+
+    await waitFor(() => expect(screen.getByRole("alert")).toBeInTheDocument());
+    await userEvent.click(screen.getByRole("button", { name: "Start Over" }));
+
+    expect(screen.getByTestId("new-player-entry")).toBeInTheDocument();
+    expect(readLocalIdentity()).toBeNull();
   });
 });
