@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { PublicGameStateView } from "../connection/hostOrchestrator";
 import { RoomHub, type RoomHubMessage } from "../connection/roomHub";
 import { decryptOwnPayload } from "../crypto/decryptOwnPayload";
@@ -49,10 +49,8 @@ export function usePlayerGameState({
 }: UsePlayerGameStateParams): UsePlayerGameStateResult {
   const [gameState, setGameState] = useState<PublicGameStateView | null>(null);
   const [roleInfo, setRoleInfo] = useState<PlayerRoleInfo | null>(null);
-  const roleResolvedRef = useRef(false);
 
   useEffect(() => {
-    roleResolvedRef.current = false;
     setGameState(null);
     setRoleInfo(null);
 
@@ -63,13 +61,13 @@ export function usePlayerGameState({
         }
         return;
       }
-      // Direct message: only ever decrypt this player's own envelope, and only once.
-      if (message.targetPlayerId !== playerId || roleResolvedRef.current) {
+      // Direct message: only ever decrypt this player's own envelope. Each new envelope (e.g., a
+      // rematch's freshly dealt role) replaces the previous one rather than being resolved once.
+      if (message.targetPlayerId !== playerId) {
         return;
       }
       decryptOwnPayload<PlayerRoleInfo>(privateKey, message.payload as EncryptedEnvelope)
         .then((decrypted) => {
-          roleResolvedRef.current = true;
           setRoleInfo(decrypted);
         })
         .catch(() => {

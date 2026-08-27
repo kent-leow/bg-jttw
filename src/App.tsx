@@ -19,7 +19,12 @@ import { LandingPage } from "./pages/LandingPage";
 import { LobbyPage, type LobbyPlayer } from "./pages/LobbyPage";
 import { MissionResultPage } from "./pages/MissionResultPage";
 import type { QrScannerProps } from "./pages/components/QrScanner";
+import { writeLocalIdentity } from "./state/localIdentity";
 import { usePlayerGameState, type PlayerActionTransport, type PlayerRoleInfo } from "./state/usePlayerGameState";
+
+// No backend/signaling server exists, so there is no real notion of a persistent "room id"; this
+// constant is only used as the required (but otherwise unused) key for the local rejoin snapshot.
+const JOINER_ROOM_ID = "local-room";
 
 function dispatchToOrchestrator(orchestrator: HostOrchestrator, message: unknown): void {
   if (typeof message !== "object" || message === null || !("type" in message)) {
@@ -99,6 +104,16 @@ function GameChrome({
 }: GameChromeProps) {
   const [roleAcknowledged, setRoleAcknowledged] = useState(false);
   const [lastSeenMissionCount, setLastSeenMissionCount] = useState(0);
+  const previousRoleInfoRef = useRef<PlayerRoleInfo | null>(null);
+
+  // A rematch delivers a brand-new (differently-referenced) roleInfo; re-show RoleReveal for it.
+  useEffect(() => {
+    if (roleInfo && roleInfo !== previousRoleInfoRef.current) {
+      previousRoleInfoRef.current = roleInfo;
+      setRoleAcknowledged(false);
+      setLastSeenMissionCount(0);
+    }
+  }, [roleInfo]);
 
   if (!roleInfo) {
     return <p role="status">Revealing your role…</p>;
@@ -178,6 +193,9 @@ function GameChrome({
 
   return (
     <GameBoardPage
+      // Remounts GameBoardPage for every fresh proposal/vote cycle (mission advances, or leader
+      // rotates after a rejection) so its internal hasVoted/selectedTeam state doesn't get stuck.
+      key={`${gameState.missionNumber}-${gameState.leaderId}`}
       players={players}
       leaderId={gameState.leaderId}
       requiredTeamSize={gameState.requiredTeamSize}
@@ -260,12 +278,15 @@ function HostFlow({ dependencies }: { dependencies?: HostFlowDependencies }) {
       if (!result.connectionEstablished || !pendingRef.current || !hubRef.current || !identity) {
         return result;
       }
-      const { playerId, dataChannel } = pendingRef.current;
+      const { dataChannel, playerId: fallbackPlayerId } = pendingRef.current;
       pendingRef.current = null;
       const jwk = (answer as { publicKeyJwk?: JsonWebKey }).publicKeyJwk;
       if (!jwk) {
         return result;
       }
+      // The joiner's own generated identity (embedded in the answer) is authoritative — both sides
+      // must agree on the same player id for relayed/broadcast messages to reach the right peer.
+      const playerId = (answer as { playerId?: string }).playerId ?? fallbackPlayerId;
       const publicKey = await importPublicKeyJwk(jwk);
       const transport = createDataChannelTransport(dataChannel);
       hubRef.current.connect({ playerId, onMessage: (message) => transport.send(message) });
@@ -385,6 +406,8 @@ export interface JoinFlowDependencies {
   readonly generateAnswer?: typeof generateJoinAnswer;
   readonly requestCamera?: QrScannerProps["requestCamera"];
   readonly startScanLoop?: QrScannerProps["startScanLoop"];
+  readonly generateKeyPair?: typeof generateKeyPair;
+  readonly generatePlayerId?: () => string;
 }
 
 function JoinFlow({ dependencies }: { dependencies?: JoinFlowDependencies }) {
@@ -399,14 +422,15 @@ function JoinFlow({ dependencies }: { dependencies?: JoinFlowDependencies }) {
     async (hostOffer: unknown): Promise<JoinAnswerResult> => {
       const factory = dependencies?.generateAnswer ?? generateJoinAnswer;
       const result = await factory(hostOffer);
-      const { publicKey, privateKey } = await generateKeyPair();
+      const generateKeyPairImpl = dependencies?.generateKeyPair ?? generateKeyPair;
+      const { publicKey, privateKey } = await generateKeyPairImpl();
       const publicKeyJwk = await exportPublicKeyJwk(publicKey);
-      const playerId = crypto.randomUUID();
+      const playerId = (dependencies?.generatePlayerId ?? (() => crypto.randomUUID()))();
       const transport = createDataChannelTransport(result.dataChannel);
       const localHub = new RoomHub();
       bridgeTransportIntoLocalHub(transport, localHub);
       setConnected({ playerId, privateKey, localHub, transport });
-      return { ...result, answer: { ...result.answer, publicKeyJwk } } as unknown as JoinAnswerResult;
+      return { ...result, answer: { ...result.answer, publicKeyJwk, playerId } } as unknown as JoinAnswerResult;
     },
     [dependencies],
   );
@@ -439,6 +463,20 @@ function JoinFlowInGame({
     privateKey: connected.privateKey,
     transport,
   });
+
+  // Persist the latest known page so a mid-game reload can restore it (gameplay.md Flow 7); the
+  // actual live connection cannot survive a reload, so this is a read-only snapshot restore.
+  useEffect(() => {
+    writeLocalIdentity({
+      playerId: connected.playerId,
+      roomId: JOINER_ROOM_ID,
+      lastKnownState: {
+        selfPlayerId: connected.playerId,
+        gameState: hookResult.gameState,
+        roleInfo: hookResult.roleInfo,
+      },
+    });
+  }, [connected.playerId, hookResult.gameState, hookResult.roleInfo]);
 
   const players: LobbyPlayer[] = (hookResult.gameState?.players ?? []).map((id) => ({ id, displayName: id }));
 
@@ -495,7 +533,30 @@ export function App({ hostDependencies, joinDependencies, checkHostReachable }: 
       renderNewPlayerEntry={() => (
         <NewPlayerFlow hostDependencies={hostDependencies} joinDependencies={joinDependencies} />
       )}
-      renderRestoredState={() => <p role="alert">Unable to restore your prior session.</p>}
+      renderRestoredState={(currentState) => {
+        const restored = currentState as {
+          selfPlayerId: string;
+          gameState: PublicGameStateView | null;
+          roleInfo: PlayerRoleInfo | null;
+        } | null;
+        if (!restored) {
+          return <p role="alert">Unable to restore your prior session.</p>;
+        }
+        const players: LobbyPlayer[] = (restored.gameState?.players ?? []).map((id) => ({ id, displayName: id }));
+        return (
+          <GameChrome
+            selfPlayerId={restored.selfPlayerId}
+            gameState={restored.gameState}
+            roleInfo={restored.roleInfo}
+            isHost={false}
+            players={players}
+            proposeTeam={() => {}}
+            castVote={() => {}}
+            submitMissionCard={() => {}}
+            submitAssassinationGuess={() => {}}
+          />
+        );
+      }}
     />
   );
 }
