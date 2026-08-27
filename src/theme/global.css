@@ -1,0 +1,345 @@
+/* Ink-wash (水墨) visual theme — Journey to the West social-deduction game.
+   Palette and type families follow design.md's Color Palette & Typography section. */
+
+@import url("https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@500;700&family=Noto+Sans+SC:wght@400;600&family=Cormorant+Garamond:wght@500;700&family=Inter:wght@400;500;600&display=swap");
+
+:root {
+  --ink-black: #1a1a1a;
+  --rice-paper: #f5f0e6;
+  --rice-paper-soft: #faf6ec;
+  --vermillion: #c8102e;
+  --vermillion-dark: #9c0c22;
+  --imperial-gold: #d4af37;
+  --jade: #00a86b;
+  --indigo: #3b3b6d;
+  --ink-wash-shadow: rgba(26, 26, 26, 0.18);
+
+  --font-display-cjk: "Ma Shan Zheng", "Noto Serif SC", serif;
+  --font-display-latin: "Cormorant Garamond", serif;
+  --font-body-cjk: "Noto Sans SC", sans-serif;
+  --font-body-latin: "Inter", system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(ellipse 120% 80% at 50% -10%, var(--rice-paper-soft), var(--rice-paper) 60%);
+  color: var(--ink-black);
+  font-family: var(--font-body-cjk), var(--font-body-latin);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display-cjk), var(--font-display-latin);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin: 0;
+  color: var(--ink-black);
+}
+
+p {
+  line-height: 1.6;
+  margin: 0;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+/* Page shell shared by every route: a centered, portrait-oriented scroll of content. */
+.page {
+  max-width: 480px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 20px 20px 56px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+}
+
+.page--centered {
+  justify-content: flex-start;
+  align-items: stretch;
+  text-align: center;
+}
+
+.page__intro,
+.page__hint {
+  color: #4a4a4a;
+  font-size: 0.95rem;
+}
+
+/* Scroll-card: the base parchment panel reused for buttons, lists, and dialogs. */
+.scroll-card {
+  background: linear-gradient(180deg, #fffdf8, var(--rice-paper-soft));
+  border: 1px solid rgba(26, 26, 26, 0.12);
+  border-radius: 14px;
+  box-shadow: 0 6px 18px var(--ink-wash-shadow);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+}
+
+/* Brush-stroke divider. */
+.brush-divider {
+  width: 60%;
+  margin: 4px auto;
+  border: none;
+  border-top: 3px solid var(--ink-black);
+  border-radius: 3px;
+  opacity: 0.75;
+}
+
+/* Buttons — "brush-painted scroll buttons" per design.md. */
+.btn {
+  display: inline-block;
+  padding: 12px 28px;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn:not(:disabled):active {
+  transform: scale(0.97);
+}
+
+.btn--primary {
+  background: linear-gradient(180deg, var(--vermillion), var(--vermillion-dark));
+  color: #fff8f0;
+  box-shadow: 0 4px 12px rgba(200, 16, 46, 0.35);
+}
+
+.btn--secondary {
+  background: transparent;
+  border-color: var(--imperial-gold);
+  color: var(--ink-black);
+}
+
+.btn--approve {
+  background: var(--jade);
+  color: #f5fff9;
+}
+
+.btn--reject {
+  background: var(--vermillion);
+  color: #fff8f0;
+}
+
+/* Seat/player-count "counting beads". */
+.bead-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.bead {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid var(--imperial-gold);
+  background: var(--rice-paper-soft);
+  color: var(--ink-black);
+  font-weight: 600;
+}
+
+.bead:hover {
+  background: var(--imperial-gold);
+}
+
+.seat-counter {
+  font-weight: 600;
+  color: var(--indigo);
+}
+
+/* Language toggle, pinned to the corner of every page. */
+.language-toggle {
+  align-self: flex-end;
+  display: inline-flex;
+  gap: 6px;
+  background: rgba(26, 26, 26, 0.06);
+  border-radius: 999px;
+  padding: 4px;
+}
+
+.language-toggle__btn {
+  border: none;
+  border-radius: 999px;
+  padding: 6px 14px;
+  background: transparent;
+  color: var(--ink-black);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.language-toggle__btn[aria-pressed="true"] {
+  background: var(--ink-black);
+  color: var(--rice-paper);
+}
+
+/* Circular, ink-outlined player portrait chip. */
+.portrait-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 84px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--ink-black);
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+.portrait-chip__avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 3px solid var(--ink-black);
+  background: var(--rice-paper-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display-latin);
+  font-size: 1.4rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.portrait-chip[aria-pressed="true"] .portrait-chip__avatar {
+  border-color: var(--vermillion);
+  box-shadow: 0 0 0 3px rgba(200, 16, 46, 0.25);
+}
+
+.portrait-chip[data-leader="true"] .portrait-chip__avatar {
+  border-color: var(--imperial-gold);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.35);
+}
+
+.portrait-chip:disabled {
+  opacity: 0.55;
+}
+
+.portrait-chip__name {
+  max-width: 84px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Red seal/stamp badge. */
+.seal-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 96px;
+  height: 96px;
+  border-radius: 12px;
+  border: 3px solid var(--vermillion);
+  color: var(--vermillion);
+  font-family: var(--font-display-cjk), var(--font-display-latin);
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 8px;
+  transform: rotate(-4deg);
+  box-shadow: 0 2px 8px rgba(200, 16, 46, 0.3);
+}
+
+.seal-badge--evil {
+  border-color: var(--indigo);
+  color: var(--indigo);
+}
+
+.seal-badge--host {
+  width: auto;
+  height: auto;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+}
+
+/* QR code frame. */
+.qr-frame {
+  background: #fff;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(26, 26, 26, 0.1);
+}
+
+.qr-frame img {
+  display: block;
+  width: 100%;
+  max-width: 260px;
+}
+
+/* Camera scan viewport. */
+.scan-viewport {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+  aspect-ratio: 1;
+  margin: 0 auto;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--ink-black);
+}
+
+.scan-viewport video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.scan-viewport::after {
+  content: "";
+  position: absolute;
+  inset: 12%;
+  border: 3px solid var(--imperial-gold);
+  border-radius: 10px;
+  pointer-events: none;
+}
+
+/* Player list / lobby row. */
+.player-row {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: center;
+}
+
+/* Status / result text. */
+.status-text {
+  color: var(--indigo);
+  font-style: italic;
+}
+
+.alert-text {
+  color: var(--vermillion-dark);
+  font-weight: 600;
+}

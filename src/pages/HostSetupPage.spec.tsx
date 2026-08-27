@@ -61,6 +61,7 @@ describe("HostSetupPage", () => {
     expect(startButton()).toBeDisabled();
 
     for (let expected = 1; expected <= 5; expected += 1) {
+      await userEvent.click(screen.getByRole("button", { name: "Scan Player's Reply Code" }));
       await waitFor(() => expect(completeJoinResolvers.length).toBeGreaterThan(0));
       completeJoinResolvers.shift()!({ connectionEstablished: true });
       await waitFor(() => expect(screen.getByText(`${expected}/5 joined`)).toBeInTheDocument());

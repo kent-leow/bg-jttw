@@ -58,9 +58,9 @@ export function GameBoardPage({
   const allVoted = votedCount === players.length;
 
   return (
-    <section>
+    <section className="page page--centered">
       <h1>{t("gameBoard.title")}</h1>
-      <ul aria-label="Players">
+      <ul aria-label="Players" className="player-row">
         {players.map((player) => (
           <li key={player.id}>
             <PlayerPortraitChip
@@ -74,25 +74,27 @@ export function GameBoardPage({
         ))}
       </ul>
       {isLeader && (
-        <div>
-          <button type="button" onClick={submitProposal}>
+        <div className="scroll-card">
+          <button type="button" className="btn btn--primary" onClick={submitProposal}>
             {t("common.proposeTeam")}
           </button>
-          {proposalError && <p role="alert">{proposalError}</p>}
+          {proposalError && <p role="alert" className="alert-text">{proposalError}</p>}
         </div>
       )}
-      <div>
-        <button type="button" disabled={hasVoted} onClick={() => castVote("Approve")}>
+      <div className="scroll-card">
+        <button type="button" className="btn btn--approve" disabled={hasVoted} onClick={() => castVote("Approve")}>
           {t("common.approve")}
         </button>
-        <button type="button" disabled={hasVoted} onClick={() => castVote("Reject")}>
+        <button type="button" className="btn btn--reject" disabled={hasVoted} onClick={() => castVote("Reject")}>
           {t("common.reject")}
         </button>
       </div>
       {isHost && (
         <>
-          <p data-testid="vote-progress">{t("gameBoard.voteProgress", { voted: votedCount, total: players.length })}</p>
-          <button type="button" disabled={!allVoted} onClick={onNext}>
+          <p data-testid="vote-progress" className="seat-counter">
+            {t("gameBoard.voteProgress", { voted: votedCount, total: players.length })}
+          </p>
+          <button type="button" className="btn btn--secondary" disabled={!allVoted} onClick={onNext}>
             {t("common.next")}
           </button>
         </>

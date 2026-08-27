@@ -78,6 +78,10 @@ describe("App", () => {
     await userEvent.click(screen.getByRole("button", { name: "5" }));
 
     const startGameButton = () => screen.getByRole("button", { name: "Start Game" });
+    for (let expected = 1; expected <= 5; expected += 1) {
+      await userEvent.click(screen.getByRole("button", { name: "Scan Player's Reply Code" }));
+      await waitFor(() => expect(screen.getByText(`${expected}/5 joined`)).toBeInTheDocument(), { timeout: 5000 });
+    }
     await waitFor(() => expect(startGameButton()).toBeEnabled(), { timeout: 5000 });
 
     await userEvent.click(startGameButton());
@@ -123,6 +127,7 @@ describe("App", () => {
     );
 
     await userEvent.click(await screen.findByRole("button", { name: "Join a Game" }));
+    await userEvent.click(screen.getByRole("button", { name: "Start Scanning" }));
 
     // Wait until JoinFlowInGame has actually mounted (and usePlayerGameState has subscribed to
     // the local hub) before simulating an inbound host broadcast.

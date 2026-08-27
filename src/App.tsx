@@ -18,6 +18,7 @@ import { JoinPage } from "./pages/JoinPage";
 import { LandingPage } from "./pages/LandingPage";
 import { LobbyPage, type LobbyPlayer } from "./pages/LobbyPage";
 import { MissionResultPage } from "./pages/MissionResultPage";
+import { SealBadge } from "./pages/components/SealBadge";
 import type { QrScannerProps } from "./pages/components/QrScanner";
 import { writeLocalIdentity } from "./state/localIdentity";
 import { usePlayerGameState, type PlayerActionTransport, type PlayerRoleInfo } from "./state/usePlayerGameState";
@@ -116,31 +117,44 @@ function GameChrome({
   }, [roleInfo]);
 
   if (!roleInfo) {
-    return <p role="status">Revealing your role…</p>;
+    return (
+      <section className="page page--centered">
+        <p role="status" className="status-text">Revealing your role…</p>
+      </section>
+    );
   }
   if (!roleAcknowledged) {
     return (
-      <div>
+      <section className="page page--centered">
+        <SealBadge variant={roleInfo.role.alignment === "Good" ? "good" : "evil"} />
         <h1 data-testid="role-reveal-name">{roleInfo.role.name}</h1>
-        <p data-testid="role-reveal-alignment">{roleInfo.role.alignment}</p>
-        <button type="button" onClick={() => setRoleAcknowledged(true)}>
+        <p data-testid="role-reveal-alignment" className="page__hint">{roleInfo.role.alignment}</p>
+        <button type="button" className="btn btn--primary" onClick={() => setRoleAcknowledged(true)}>
           Continue
         </button>
-      </div>
+      </section>
     );
   }
   if (!gameState) {
-    return <p role="status">Waiting for the game to begin…</p>;
+    return (
+      <section className="page page--centered">
+        <p role="status" className="status-text">Waiting for the game to begin…</p>
+      </section>
+    );
   }
 
   if (gameState.missionResults.length > lastSeenMissionCount) {
     return (
-      <div>
+      <section className="page page--centered">
         <MissionResultPage result={gameState.missionResults[gameState.missionResults.length - 1]!} />
-        <button type="button" onClick={() => setLastSeenMissionCount(gameState.missionResults.length)}>
+        <button
+          type="button"
+          className="btn btn--primary"
+          onClick={() => setLastSeenMissionCount(gameState.missionResults.length)}
+        >
           Continue
         </button>
-      </div>
+      </section>
     );
   }
 
@@ -175,20 +189,26 @@ function GameChrome({
   if (gameState.phase === "MissionResolution") {
     if (gameState.teamProposal?.includes(selfPlayerId)) {
       return (
-        <div>
+        <section className="page page--centered">
           <h1>Submit Your Mission Card</h1>
-          <button type="button" onClick={() => submitMissionCard("Success")}>
-            Success
-          </button>
-          {roleInfo.role.alignment === "Evil" && (
-            <button type="button" onClick={() => submitMissionCard("Fail")}>
-              Fail
+          <div className="scroll-card">
+            <button type="button" className="btn btn--approve" onClick={() => submitMissionCard("Success")}>
+              Success
             </button>
-          )}
-        </div>
+            {roleInfo.role.alignment === "Evil" && (
+              <button type="button" className="btn btn--reject" onClick={() => submitMissionCard("Fail")}>
+                Fail
+              </button>
+            )}
+          </div>
+        </section>
       );
     }
-    return <p role="status">Waiting for the mission team to submit their cards…</p>;
+    return (
+      <section className="page page--centered">
+        <p role="status" className="status-text">Waiting for the mission team to submit their cards…</p>
+      </section>
+    );
   }
 
   return (

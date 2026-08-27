@@ -20,23 +20,23 @@ export interface EndGamePageProps {
 export function EndGamePage({ result, resultReason, players, isHost, onRematch, onEndSession }: EndGamePageProps) {
   const { t } = useTranslation();
   return (
-    <section>
+    <section className="page page--centered">
       <SealBadge variant={result === "GoodWin" ? "good" : "evil"} />
       <h1 data-testid="game-result">{result}</h1>
-      <p data-testid="game-result-reason">{resultReason}</p>
-      <ul aria-label="Revealed roles">
+      <p data-testid="game-result-reason" className="page__hint">{resultReason}</p>
+      <ul aria-label="Revealed roles" className="player-row">
         {players.map((player) => (
-          <li key={player.id} data-testid="revealed-role">
+          <li key={player.id} data-testid="revealed-role" className="scroll-card">
             {`${player.displayName}: ${player.role.name} (${player.role.alignment})`}
           </li>
         ))}
       </ul>
       {isHost && (
-        <div>
-          <button type="button" onClick={onRematch}>
+        <div className="scroll-card">
+          <button type="button" className="btn btn--primary" onClick={onRematch}>
             {t("endGame.rematch")}
           </button>
-          <button type="button" onClick={onEndSession}>
+          <button type="button" className="btn btn--secondary" onClick={onEndSession}>
             {t("endGame.endSession")}
           </button>
         </div>

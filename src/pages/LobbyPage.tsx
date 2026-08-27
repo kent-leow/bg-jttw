@@ -47,19 +47,24 @@ export function LobbyPage({ roomHub, selfPlayerId, playerCount, isHost, onStartG
   const seatsFilled = players.length === playerCount;
 
   return (
-    <section>
+    <section className="page page--centered">
       <LanguageToggle />
       <h1>{t("lobby.title")}</h1>
-      <p>{t("lobby.seatCounter", { joined: players.length, total: playerCount })}</p>
-      <ul aria-label="Connected players">
+      <p className="seat-counter">{t("lobby.seatCounter", { joined: players.length, total: playerCount })}</p>
+      <ul aria-label="Connected players" className="player-row">
         {players.map((player) => (
           <li key={player.id} data-testid="player-portrait-chip">
-            {player.displayName}
+            <span className="portrait-chip">
+              <span className="portrait-chip__avatar" aria-hidden="true">
+                {player.displayName.charAt(0).toUpperCase()}
+              </span>
+              <span className="portrait-chip__name">{player.displayName}</span>
+            </span>
           </li>
         ))}
       </ul>
       {isHost && (
-        <button type="button" disabled={!seatsFilled} onClick={onStartGame}>
+        <button type="button" className="btn btn--primary" disabled={!seatsFilled} onClick={onStartGame}>
           {t("common.startGame")}
         </button>
       )}

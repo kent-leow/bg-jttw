@@ -8,11 +8,21 @@ export function LanguageToggle() {
   }
 
   return (
-    <div role="group" aria-label="Language">
-      <button type="button" aria-pressed={locale === "en"} onClick={() => selectLocale("en")}>
+    <div role="group" aria-label="Language" className="language-toggle">
+      <button
+        type="button"
+        className="language-toggle__btn"
+        aria-pressed={locale === "en"}
+        onClick={() => selectLocale("en")}
+      >
         {t("languageToggle.english")}
       </button>
-      <button type="button" aria-pressed={locale === "zh"} onClick={() => selectLocale("zh")}>
+      <button
+        type="button"
+        className="language-toggle__btn"
+        aria-pressed={locale === "zh"}
+        onClick={() => selectLocale("zh")}
+      >
         {t("languageToggle.chinese")}
       </button>
     </div>

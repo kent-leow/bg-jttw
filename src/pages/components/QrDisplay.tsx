@@ -30,5 +30,9 @@ export function QrDisplay({ payload }: QrDisplayProps) {
   if (!dataUrl) {
     return <p role="status">Generating QR code…</p>;
   }
-  return <img src={dataUrl} alt="QR code" />;
+  return (
+    <div className="qr-frame">
+      <img src={dataUrl} alt="QR code" />
+    </div>
+  );
 }

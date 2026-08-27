@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { encodeQrPayload } from "../connection/qrCodec";
 import { JoinPage } from "./JoinPage";
@@ -16,6 +17,7 @@ describe("JoinPage", () => {
     const startScanLoop = startScanLoopEmitting("not-a-valid-base64-payload-!!!");
 
     render(<JoinPage requestCamera={requestCamera} startScanLoop={startScanLoop} />);
+    await userEvent.click(screen.getByRole("button", { name: "Start Scanning" }));
 
     await waitFor(() => expect(screen.getByRole("alert")).toBeInTheDocument());
     expect(screen.getByRole("alert").textContent).toMatch(/not a valid host invite/i);
@@ -32,6 +34,7 @@ describe("JoinPage", () => {
     render(
       <JoinPage generateAnswer={generateAnswer} requestCamera={requestCamera} startScanLoop={startScanLoop} />,
     );
+    await userEvent.click(screen.getByRole("button", { name: "Start Scanning" }));
 
     await waitFor(() => expect(screen.getByAltText("QR code")).toBeInTheDocument());
     expect(generateAnswer).toHaveBeenCalledWith({ type: "offer", sdp: "host-offer-sdp" });

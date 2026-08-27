@@ -16,13 +16,17 @@ export function PlayerPortraitChip({
   return (
     <button
       type="button"
+      className="portrait-chip"
       aria-pressed={selected}
       aria-label={displayName}
       data-leader={isLeader}
       disabled={disabled}
       onClick={onClick}
     >
-      {displayName}
+      <span className="portrait-chip__avatar" aria-hidden="true">
+        {displayName.charAt(0).toUpperCase()}
+      </span>
+      <span className="portrait-chip__name">{displayName}</span>
     </button>
   );
 }

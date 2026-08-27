@@ -86,5 +86,9 @@ export function QrScanner({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return <video ref={videoRef} aria-label="QR scanner viewport" muted playsInline />;
+  return (
+    <div className="scan-viewport">
+      <video ref={videoRef} aria-label="QR scanner viewport" muted playsInline />
+    </div>
+  );
 }

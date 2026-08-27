@@ -109,7 +109,10 @@ function findLeaderInstance(instances: readonly RenderResult[]): RenderResult {
   return leader;
 }
 
-async function connectOneJoiner(network: FakeNetwork): Promise<{ instance: RenderResult; publicKeyJwk: JsonWebKey }> {
+async function connectOneJoiner(
+  host: RenderResult,
+  network: FakeNetwork,
+): Promise<{ instance: RenderResult; publicKeyJwk: JsonWebKey }> {
   let capturedJwk: JsonWebKey | undefined;
   let capturedPlayerId: string | undefined;
   // localStorage is a single shared object across every simulated "device" in this jsdom process
@@ -126,6 +129,7 @@ async function connectOneJoiner(network: FakeNetwork): Promise<{ instance: Rende
     />,
   );
   await userEvent.click(await q(instance).findByRole("button", { name: "Join a Game" }));
+  await userEvent.click(q(instance).getByRole("button", { name: "Start Scanning" }));
   await waitFor(() => expect(q(instance).getByRole("heading", { name: "Lobby" })).toBeInTheDocument());
   await waitFor(() => expect(capturedJwk).toBeDefined());
   await waitFor(() => expect(capturedPlayerId).toBeDefined());
@@ -136,6 +140,7 @@ async function connectOneJoiner(network: FakeNetwork): Promise<{ instance: Rende
     publicKeyJwk: capturedJwk,
     playerId: capturedPlayerId,
   });
+  await userEvent.click(q(host).getByRole("button", { name: "Scan Player's Reply Code" }));
   network.hostOnFrame!(answerPayload);
 
   return { instance, publicKeyJwk: capturedJwk! };
@@ -163,7 +168,7 @@ describe("Full-playthrough integration", () => {
       const joiners: RenderResult[] = [];
       for (let i = 0; i < 5; i += 1) {
         const beforeSdp = network.currentOfferSdp;
-        const { instance } = await connectOneJoiner(network);
+        const { instance } = await connectOneJoiner(host, network);
         joiners.push(instance);
         if (i < 4) {
           await waitFor(() => expect(network.currentOfferSdp).not.toBe(beforeSdp));

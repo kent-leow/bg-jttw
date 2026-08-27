@@ -12,14 +12,14 @@ export function LandingPage({ onHost, onJoin }: LandingPageProps) {
   const { t } = useTranslation();
 
   return (
-    <section>
+    <section className="page page--centered">
       <LanguageToggle />
       <LandingScene />
       <ScrollCard>
-        <button type="button" onClick={onHost}>
+        <button type="button" className="btn btn--primary" onClick={onHost}>
           {t("landing.hostGame")}
         </button>
-        <button type="button" onClick={onJoin}>
+        <button type="button" className="btn btn--secondary" onClick={onJoin}>
           {t("landing.joinGame")}
         </button>
       </ScrollCard>

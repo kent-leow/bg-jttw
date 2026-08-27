@@ -13,7 +13,12 @@ export interface SealBadgeProps {
 /** Red seal/stamp badge — used as the host marker and the win-side marker on the reveal screen. */
 export function SealBadge({ variant }: SealBadgeProps) {
   return (
-    <span data-testid={`seal-badge-${variant}`} role="img" aria-label={SEAL_LABELS[variant]}>
+    <span
+      className={`seal-badge seal-badge--${variant}`}
+      data-testid={`seal-badge-${variant}`}
+      role="img"
+      aria-label={SEAL_LABELS[variant]}
+    >
       {SEAL_LABELS[variant]}
     </span>
   );

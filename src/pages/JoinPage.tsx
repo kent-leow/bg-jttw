@@ -7,7 +7,7 @@ import { LanguageToggle } from "./components/LanguageToggle";
 import { QrDisplay } from "./components/QrDisplay";
 import { QrScanner, type QrScannerProps } from "./components/QrScanner";
 
-type JoinPageStatus = "scanning" | "connected" | "error";
+type JoinPageStatus = "idle" | "scanning" | "connected" | "error";
 
 export interface JoinPageProps {
   readonly generateAnswer?: typeof generateJoinAnswer;
@@ -16,7 +16,7 @@ export interface JoinPageProps {
 }
 
 export function JoinPage({ generateAnswer = generateJoinAnswer, requestCamera, startScanLoop }: JoinPageProps) {
-  const [status, setStatus] = useState<JoinPageStatus>("scanning");
+  const [status, setStatus] = useState<JoinPageStatus>("idle");
   const [encodedAnswer, setEncodedAnswer] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { t } = useTranslation();
@@ -51,18 +51,26 @@ export function JoinPage({ generateAnswer = generateJoinAnswer, requestCamera, s
   }, []);
 
   return (
-    <section>
+    <section className="page page--centered">
       <LanguageToggle />
       <h1>{t("joinPage.title")}</h1>
+      {status === "idle" && (
+        <div className="scroll-card">
+          <p className="page__hint">{t("joinPage.scanInstruction")}</p>
+          <button type="button" className="btn btn--primary" onClick={() => setStatus("scanning")}>
+            {t("joinPage.startScanning")}
+          </button>
+        </div>
+      )}
       {status === "scanning" && (
         <QrScanner onDecoded={handleDecodedOffer} onError={handleScanError} requestCamera={requestCamera} startScanLoop={startScanLoop} />
       )}
       {status === "error" && <p role="alert">{errorMessage}</p>}
       {status === "connected" && encodedAnswer && (
-        <>
-          <p>{t("joinPage.showToHost")}</p>
+        <div className="scroll-card">
+          <p className="page__hint">{t("joinPage.showToHost")}</p>
           <QrDisplay payload={encodedAnswer} />
-        </>
+        </div>
       )}
     </section>
   );

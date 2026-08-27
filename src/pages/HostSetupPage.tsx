@@ -36,6 +36,7 @@ export function HostSetupPage({
   const [offer, setOffer] = useState<{ offer: OfferPayload; peerConnection: RTCPeerConnection } | null>(null);
   const [joinedCount, setJoinedCount] = useState(0);
   const [scanError, setScanError] = useState<string | null>(null);
+  const [readyToScan, setReadyToScan] = useState(false);
   const { t } = useTranslation();
 
   const requestNextOffer = useCallback(() => {
@@ -64,6 +65,7 @@ export function HostSetupPage({
         return;
       }
       completeJoin(offer.peerConnection, answer).then(({ connectionEstablished }) => {
+        setReadyToScan(false);
         if (!connectionEstablished) {
           setScanError(t("hostSetup.connectionFailed"));
           return;
@@ -86,13 +88,13 @@ export function HostSetupPage({
 
   if (playerCount === null) {
     return (
-      <section>
+      <section className="page page--centered">
         <LanguageToggle />
         <h1>{t("hostSetup.title")}</h1>
-        <p>{t("hostSetup.choosePlayerCount")}</p>
-        <div role="group" aria-label="Player count">
+        <p className="page__intro">{t("hostSetup.choosePlayerCount")}</p>
+        <div role="group" aria-label="Player count" className="bead-selector">
           {PLAYER_COUNT_OPTIONS.map((count) => (
-            <button key={count} type="button" onClick={() => selectPlayerCount(count)}>
+            <button key={count} type="button" className="bead" onClick={() => selectPlayerCount(count)}>
               {count}
             </button>
           ))}
@@ -102,12 +104,25 @@ export function HostSetupPage({
   }
 
   return (
-    <section>
+    <section className="page page--centered">
       <LanguageToggle />
       <h1>{t("hostSetup.title")}</h1>
-      <p>{t("hostSetup.seatCounter", { joined: joinedCount, total: playerCount })}</p>
-      {encodedOffer && <QrDisplay payload={encodedOffer} />}
-      {!seatsFilled && offer && (
+      <p className="seat-counter">{t("hostSetup.seatCounter", { joined: joinedCount, total: playerCount })}</p>
+      {encodedOffer && (
+        <div className="scroll-card">
+          <p className="page__hint">{t("hostSetup.qrInstruction")}</p>
+          <QrDisplay payload={encodedOffer} />
+        </div>
+      )}
+      {!seatsFilled && offer && !readyToScan && (
+        <div className="scroll-card">
+          <p className="page__hint">{t("hostSetup.scanInstruction")}</p>
+          <button type="button" className="btn btn--secondary" onClick={() => setReadyToScan(true)}>
+            {t("hostSetup.scanReply")}
+          </button>
+        </div>
+      )}
+      {!seatsFilled && offer && readyToScan && (
         <QrScanner
           key={joinedCount}
           onDecoded={handleScannedAnswer}
@@ -117,7 +132,7 @@ export function HostSetupPage({
         />
       )}
       {scanError && <p role="alert">{scanError}</p>}
-      <button type="button" disabled={!seatsFilled} onClick={() => onStartGame?.(playerCount)}>
+      <button type="button" className="btn btn--primary" disabled={!seatsFilled} onClick={() => onStartGame?.(playerCount)}>
         {t("common.startGame")}
       </button>
     </section>

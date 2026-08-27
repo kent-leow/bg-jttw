@@ -7,9 +7,11 @@ export interface MissionResultPageProps {
 export function MissionResultPage({ result }: MissionResultPageProps) {
   const { t } = useTranslation();
   return (
-    <section>
+    <section className="page page--centered">
       <h1>{t("missionResult.title")}</h1>
-      <p data-testid="mission-result">{result}</p>
+      <p data-testid="mission-result" className={result === "Success" ? "status-text" : "alert-text"}>
+        {result}
+      </p>
     </section>
   );
 }
