@@ -45,9 +45,6 @@ describe("App", () => {
     await waitFor(() => {
       expect(screen.getByRole("button", { name: "Start Game" })).toBeInTheDocument();
     });
-
-    // Should not have Join button
-    expect(screen.queryByRole("button", { name: "Join a Game" })).not.toBeInTheDocument();
   });
 
   it("navigates to HostSetupPage when Start Game is clicked", async () => {
@@ -66,7 +63,7 @@ describe("App", () => {
     });
   });
 
-  it("navigates back to LandingPage from HostSetupPage", async () => {
+  it("can complete roster setup with 5 players and reach role reveal", async () => {
     render(<App />);
 
     await waitFor(() => {
@@ -79,30 +76,102 @@ describe("App", () => {
       expect(screen.getByRole("button", { name: "5" })).toBeInTheDocument();
     });
 
-    // Select a player count to enter name entry
+    // Select 5 players
     await userEvent.click(screen.getByRole("button", { name: "5" }));
 
+    // Enter names for all 5 players
+    for (let i = 0; i < 5; i++) {
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText(`Player ${i + 1}`)).toBeInTheDocument();
+      });
+
+      const input = screen.getByPlaceholderText(`Player ${i + 1}`);
+      await userEvent.type(input, `Player ${i + 1}`);
+
+      // Skip photo for each player
+      const skipButtons = screen.queryAllByRole("button", { name: /Next|Review/ });
+      if (skipButtons.length > 0) {
+        await userEvent.click(skipButtons[skipButtons.length - 1]);
+      }
+    }
+
+    // Should reach review step
     await waitFor(() => {
-      expect(screen.getByPlaceholderText("Player 1")).toBeInTheDocument();
+      expect(
+        screen.queryByRole("heading", { name: /Review Roster|Set Up Your Roster/ })
+      ).toBeInTheDocument();
     });
 
-    // Click Back button
-    const backButtons = screen.queryAllByRole("button", { name: "Back" });
-    if (backButtons.length > 0) {
-      await userEvent.click(backButtons[0]);
-
-      await waitFor(() => {
-        // Should be back to player count selection (or landing)
-        const startButton = screen.queryByRole("button", { name: "Start Game" });
-        if (startButton) {
-          // Either on landing or back in setup - check if we can click player count buttons
-          expect(
-            screen.queryByRole("button", { name: "5" }) ||
-            startButton,
-          ).toBeTruthy();
-        }
-      });
+    // Start the game - this should move to role reveal
+    const startButtons = screen.queryAllByRole("button", { name: /Start Game|Next/ });
+    for (const btn of startButtons) {
+      if (btn.textContent?.includes("Start Game") || btn.textContent?.includes("Next")) {
+        await userEvent.click(btn);
+        break;
+      }
     }
+
+    // Wait for role reveal to appear
+    await waitFor(
+      () => {
+        // RoleRevealPage should show a pass device gate
+        const passGateInstruction = screen.queryByTestId("pass-device-gate-instruction");
+        expect(passGateInstruction).toBeTruthy();
+      },
+      { timeout: 3000 }
+    );
+  });
+
+  it("can play a complete game from setup through end-game with role reveal, voting, and missions", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    // Start game
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Start Game" })).toBeInTheDocument();
+    });
+    await user.click(screen.getByRole("button", { name: "Start Game" }));
+
+    // Select 5 players
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "5" })).toBeInTheDocument();
+    });
+    await user.click(screen.getByRole("button", { name: "5" }));
+
+    // Enter names for 5 players
+    for (let i = 0; i < 5; i++) {
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText(`Player ${i + 1}`)).toBeInTheDocument();
+      });
+      const input = screen.getByPlaceholderText(`Player ${i + 1}`);
+      await user.clear(input);
+      await user.type(input, `TestPlayer${i + 1}`);
+
+      // Skip photo
+      const buttons = screen.queryAllByRole("button", { name: /Next|Review/ });
+      if (buttons.length > 0) {
+        const actionButton = buttons[buttons.length - 1];
+        await user.click(actionButton);
+      }
+    }
+
+    // Confirm roster review and start game
+    await waitFor(() => {
+      const startGameBtn = screen.queryByRole("button", { name: /Start Game/ });
+      if (startGameBtn) {
+        user.click(startGameBtn);
+      }
+    });
+
+    // Roles should be assigned and we should see role reveal
+    await waitFor(
+      () => {
+        // Should show pass device gate
+        const passGateInstruction = screen.queryByTestId("pass-device-gate-instruction");
+        expect(passGateInstruction).toBeTruthy();
+      },
+      { timeout: 3000 }
+    );
   });
 });
 

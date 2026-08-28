@@ -1,23 +1,21 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { HostSetupPage, type RosterPlayer } from "./HostSetupPage";
+import { HostSetupPage } from "./HostSetupPage";
 
 describe("HostSetupPage", () => {
   beforeEach(() => {
     // Mock getUserMedia for PhotoCapture tests
     const mockVideoTrack = { stop: vi.fn() };
     const mockAudioTrack = { stop: vi.fn() };
-    vi.stubGlobal(
-      "navigator",
-      {
-        mediaDevices: {
-          getUserMedia: vi.fn().mockResolvedValue({
-            getTracks: vi.fn(() => [mockVideoTrack, mockAudioTrack]),
-          } as unknown as MediaStream),
-        },
-      } as unknown as Navigator,
-    );
+    Object.defineProperty(navigator, "mediaDevices", {
+      value: {
+        getUserMedia: vi.fn().mockResolvedValue({
+          getTracks: vi.fn(() => [mockVideoTrack, mockAudioTrack]),
+        } as unknown as MediaStream),
+      },
+      configurable: true,
+    });
 
     // Mock HTMLVideoElement.prototype
     Object.defineProperty(HTMLVideoElement.prototype, "videoWidth", {

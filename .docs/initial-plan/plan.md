@@ -1,5 +1,7 @@
 # Journey to the West — Online Social-Deduction Party Game
 
+> **Note:** This original plan describes a WebRTC/QR-based multi-device connection model. That approach was found not to reliably sync game state in practice. The plan has been superseded by a **single-device pass-and-play** pivot documented in [.docs/pass-and-play-plan/plan.md](../pass-and-play-plan/plan.md), which replaces AC1–AC3 and AC6 (room hosting, joining, cross-device sync, rejoin-after-refresh) with simpler single-device equivalents (roster setup, local persistence). The AC4 role mapping, bilingual interface, and ink-wash visual theme remain unchanged.
+
 ## Summary
 A website where players host or join a game room to play a new, Journey to the West–themed social-deduction party game (mechanically in the same family as the well-known hidden-role genre, redesigned end-to-end with its own characters, names, and presentation). Each player uses their own device/browser to connect; there is no backend server, so room hosting, joining, and live game-state updates must work through peer-to-peer connections or the host's browser acting as the source of truth.
 

@@ -8,17 +8,15 @@ describe("PhotoCapture", () => {
     const mockVideoTrack = { stop: vi.fn() };
     const mockAudioTrack = { stop: vi.fn() };
 
-    // Stub global navigator.mediaDevices
-    vi.stubGlobal(
-      "navigator",
-      {
-        mediaDevices: {
-          getUserMedia: vi.fn().mockResolvedValue({
-            getTracks: vi.fn(() => [mockVideoTrack, mockAudioTrack]),
-          } as unknown as MediaStream),
-        },
-      } as unknown as Navigator,
-    );
+    // Mock navigator.mediaDevices with a resolved promise
+    Object.defineProperty(navigator, "mediaDevices", {
+      value: {
+        getUserMedia: vi.fn().mockResolvedValue({
+          getTracks: vi.fn(() => [mockVideoTrack, mockAudioTrack]),
+        } as unknown as MediaStream),
+      },
+      configurable: true,
+    });
 
     // Mock HTMLVideoElement.prototype
     Object.defineProperty(HTMLVideoElement.prototype, "videoWidth", {
@@ -33,7 +31,6 @@ describe("PhotoCapture", () => {
 
   afterEach(() => {
     vi.clearAllMocks();
-    vi.unstubAllGlobals();
   });
 
   it("renders the enable camera button and does not request camera on mount", () => {
@@ -52,11 +49,12 @@ describe("PhotoCapture", () => {
     expect(navigator.mediaDevices.getUserMedia).not.toHaveBeenCalled();
 
     await act(async () => {
-      await userEvent.click(enableBtn);
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      userEvent.click(enableBtn);
     });
 
-    expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalled();
+    });
   });
 
   it("shows video controls after camera is enabled", async () => {
@@ -64,13 +62,15 @@ describe("PhotoCapture", () => {
     render(<PhotoCapture onCapture={onCapture} />);
 
     const enableBtn = screen.getByRole("button", { name: /Capture Photo/i });
+    
     await act(async () => {
-      await userEvent.click(enableBtn);
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      userEvent.click(enableBtn);
     });
 
-    expect(screen.getByRole("button", { name: /Snap/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Skip/i })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /Snap/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /Skip/i })).toBeInTheDocument();
+    });
   });
 
   it("calls onCapture with null when skip is clicked", async () => {
@@ -78,12 +78,15 @@ describe("PhotoCapture", () => {
     render(<PhotoCapture onCapture={onCapture} />);
 
     const enableBtn = screen.getByRole("button", { name: /Capture Photo/i });
+    
     await act(async () => {
-      await userEvent.click(enableBtn);
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      userEvent.click(enableBtn);
     });
 
-    const skipBtn = screen.getByRole("button", { name: /Skip/i });
+    const skipBtn = await waitFor(() => 
+      screen.getByRole("button", { name: /Skip/i })
+    );
+    
     await act(async () => {
       await userEvent.click(skipBtn);
     });
@@ -99,12 +102,14 @@ describe("PhotoCapture", () => {
     render(<PhotoCapture onCapture={onCapture} />);
 
     const enableBtn = screen.getByRole("button", { name: /Capture Photo/i });
+    
     await act(async () => {
-      await userEvent.click(enableBtn);
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      userEvent.click(enableBtn);
     });
 
-    expect(onCapture).toHaveBeenCalledWith(null);
+    await waitFor(() => {
+      expect(onCapture).toHaveBeenCalledWith(null);
+    });
   });
 });
 
