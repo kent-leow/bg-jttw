@@ -7,6 +7,7 @@ export interface PassDeviceGateProps {
   readonly holderName: string | null;
   readonly children: ReactNode;
   readonly onHidden: () => void;
+  readonly messageKey?: string;
 }
 
 /**
@@ -21,6 +22,7 @@ export function PassDeviceGate({
   holderName,
   children,
   onHidden,
+  messageKey,
 }: PassDeviceGateProps) {
   const { t } = useTranslation();
   const [isRevealed, setIsRevealed] = useState(false);
@@ -36,8 +38,9 @@ export function PassDeviceGate({
 
   if (!isRevealed) {
     // Interstitial state: "Pass to <holderName>, tap when ready"
-    const message =
-      holderName !== null
+    const message = messageKey
+      ? t(messageKey)
+      : holderName !== null
         ? t("passDeviceGate.passTo", { holderName })
         : t("passDeviceGate.passToGeneric");
 

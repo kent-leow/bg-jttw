@@ -9,12 +9,47 @@ const players = [
 ];
 
 describe("AssassinationPage", () => {
-  it("renders the target grid only on the Assassin's device", async () => {
+  it("renders the PassDeviceGate interstitial without naming the Assassin before confirmation", () => {
     const onSelectTarget = vi.fn();
     render(<AssassinationPage isAssassin players={players} onSelectTarget={onSelectTarget} />);
 
+    // Interstitial should be visible
+    expect(screen.getByTestId("pass-device-gate-instruction")).toBeInTheDocument();
+    
+    // Target grid should NOT be visible yet
+    expect(screen.queryByTestId("assassination-target-grid")).not.toBeInTheDocument();
+    
+    // Instruction should not contain the Assassin's name (should say something generic)
+    const instruction = screen.getByTestId("pass-device-gate-instruction");
+    expect(instruction.textContent).not.toContain("Tang Sanzang");
+    expect(instruction.textContent).not.toContain("Sun Wukong");
+  });
+
+  it("reveals the target grid only after PassDeviceGate is confirmed", async () => {
+    const onSelectTarget = vi.fn();
+    render(<AssassinationPage isAssassin players={players} onSelectTarget={onSelectTarget} />);
+
+    // Initially, target grid is not in DOM
+    expect(screen.queryByTestId("assassination-target-grid")).not.toBeInTheDocument();
+
+    // Confirm the gate
+    await userEvent.click(screen.getByTestId("pass-device-gate-confirm"));
+
+    // Now target grid should be visible
     expect(screen.getByTestId("assassination-target-grid")).toBeInTheDocument();
+  });
+
+  it("calls onSelectTarget exactly once when a target is selected", async () => {
+    const onSelectTarget = vi.fn();
+    render(<AssassinationPage isAssassin players={players} onSelectTarget={onSelectTarget} />);
+
+    // Confirm the gate first
+    await userEvent.click(screen.getByTestId("pass-device-gate-confirm"));
+
+    // Select a target
     await userEvent.click(screen.getByRole("button", { name: "Tang Sanzang" }));
+    
+    expect(onSelectTarget).toHaveBeenCalledTimes(1);
     expect(onSelectTarget).toHaveBeenCalledWith("p1");
   });
 

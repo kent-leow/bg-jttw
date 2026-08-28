@@ -51,6 +51,7 @@
   "missionResult.title": "Mission Result",
   "assassination.title": "Choose Your Target",
   "assassination.suspense": "The Assassin is choosing…",
+  "assassination.passToAssassin": "Pass to the Assassin, tap when ready",
   "endGame.rematch": "Rematch",
   "endGame.endSession": "End Session",
   "passDeviceGate.passTo": "Pass to {holderName}, tap when ready",

@@ -51,6 +51,7 @@
   "missionResult.title": "任务结果",
   "assassination.title": "选择你的目标",
   "assassination.suspense": "刺客正在抉择…",
+  "assassination.passToAssassin": "传给刺客,准备好时点击",
   "endGame.rematch": "再来一局",
   "endGame.endSession": "结束游戏",
   "passDeviceGate.passTo": "传给{holderName},准备好时点击",
