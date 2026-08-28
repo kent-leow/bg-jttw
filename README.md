@@ -18,9 +18,7 @@ npm run format  # prettier --write
 ## Structure
 
 - `src/engine/` — framework-agnostic game-logic modules
-- `src/connection/` — WebRTC/QR connection-service modules
-- `src/crypto/` — per-player secret-info encryption modules
-- `src/state/` — local-storage identity/persistence modules
+- `src/state/` — local game state and persistence modules
 - `src/i18n/` — translation infra and locale files
 - `src/theme/` — ink-wash design system and three.js scene modules
 - `src/pages/` — page-level UI components

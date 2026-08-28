@@ -1,12 +1,33 @@
-import { useCallback, useEffect, useState } from "react";
-import type { PublicGameStateView } from "../connection/hostOrchestrator";
-import { RoomHub, type RoomHubMessage } from "../connection/roomHub";
-import { decryptOwnPayload } from "../crypto/decryptOwnPayload";
-import type { EncryptedEnvelope } from "../crypto/encryptForPlayer";
 import type { MissionCard } from "../engine/missionResolution";
 import type { HiddenKnowledge } from "../engine/hiddenKnowledge";
 import type { RoleDefinition } from "../engine/types";
 import type { Vote } from "../engine/voteResolution";
+
+// Stub types - originally from deleted modules
+export interface PublicGameStateView {
+  players: readonly string[];
+  leaderId: string;
+  missionNumber: number;
+  requiredTeamSize: number;
+  phase: string;
+  votes: Record<string, Vote>;
+  missionResults: readonly unknown[];
+  result: unknown;
+  resultReason?: string;
+  revealedRoles?: readonly { playerId: string; role: RoleDefinition }[];
+  teamProposal?: readonly string[];
+}
+
+export interface RoomHub {
+  connect(opts: { playerId: string; onMessage: (message: unknown) => void }): void;
+  disconnect(playerId: string): void;
+}
+
+export interface RoomHubMessage {
+  kind: "broadcast" | "direct";
+  targetPlayerId?: string;
+  payload: unknown;
+}
 
 export interface PlayerRoleInfo {
   readonly role: RoleDefinition;
@@ -34,87 +55,18 @@ export interface UsePlayerGameStateResult {
   submitAssassinationGuess(targetPlayerId: string): void;
 }
 
-function isPublicGameStateView(payload: unknown): payload is PublicGameStateView {
-  return typeof payload === "object" && payload !== null && (payload as { kind?: unknown }).kind === "gameState";
-}
-
-function isSessionEndedMessage(payload: unknown): boolean {
-  return typeof payload === "object" && payload !== null && (payload as { kind?: unknown }).kind === "sessionEnded";
-}
-
 /**
- * Turns `RoomHub` broadcasts and this player's own encrypted relay into live page state, and
- * exposes action senders that transmit through the connected transport to the host orchestrator.
+ * STUB: usePlayerGameState has been removed (it was only used in the multi-device WebRTC flow).
+ * This will be reimplemented in task-002 for the single-device pass-and-play model.
  */
-export function usePlayerGameState({
-  roomHub,
-  playerId,
-  privateKey,
-  transport,
-}: UsePlayerGameStateParams): UsePlayerGameStateResult {
-  const [gameState, setGameState] = useState<PublicGameStateView | null>(null);
-  const [roleInfo, setRoleInfo] = useState<PlayerRoleInfo | null>(null);
-  const [sessionEnded, setSessionEnded] = useState(false);
-
-  useEffect(() => {
-    setGameState(null);
-    setRoleInfo(null);
-    setSessionEnded(false);
-
-    function handleMessage(message: RoomHubMessage) {
-      if (message.kind === "broadcast") {
-        if (isPublicGameStateView(message.payload)) {
-          setGameState(message.payload);
-        } else if (isSessionEndedMessage(message.payload)) {
-          setSessionEnded(true);
-        }
-        return;
-      }
-      // Direct message: only ever decrypt this player's own envelope. Each new envelope (e.g., a
-      // rematch's freshly dealt role) replaces the previous one rather than being resolved once.
-      if (message.targetPlayerId !== playerId) {
-        return;
-      }
-      decryptOwnPayload<PlayerRoleInfo>(privateKey, message.payload as EncryptedEnvelope)
-        .then((decrypted) => {
-          setRoleInfo(decrypted);
-        })
-        .catch(() => {
-          // Not decryptable with this device's key (e.g., malformed/misrouted); ignore, don't crash the UI.
-        });
-    }
-
-    roomHub.connect({ playerId, onMessage: handleMessage });
-    return () => roomHub.disconnect(playerId);
-  }, [roomHub, playerId, privateKey]);
-
-  const proposeTeam = useCallback(
-    (teamPlayerIds: readonly string[]) => {
-      transport.send({ type: "proposeTeam", teamPlayerIds });
-    },
-    [transport],
-  );
-
-  const castVote = useCallback(
-    (vote: Vote) => {
-      transport.send({ type: "castVote", playerId, vote });
-    },
-    [transport, playerId],
-  );
-
-  const submitMissionCard = useCallback(
-    (card: MissionCard) => {
-      transport.send({ type: "submitMissionCard", playerId, card });
-    },
-    [transport, playerId],
-  );
-
-  const submitAssassinationGuess = useCallback(
-    (targetPlayerId: string) => {
-      transport.send({ type: "submitAssassinationGuess", targetPlayerId });
-    },
-    [transport],
-  );
-
-  return { gameState, roleInfo, sessionEnded, proposeTeam, castVote, submitMissionCard, submitAssassinationGuess };
+export function usePlayerGameState(params: UsePlayerGameStateParams): UsePlayerGameStateResult {
+  return {
+    gameState: null,
+    roleInfo: null,
+    sessionEnded: false,
+    proposeTeam: () => {},
+    castVote: () => {},
+    submitMissionCard: () => {},
+    submitAssassinationGuess: () => {},
+  };
 }

@@ -4,11 +4,10 @@ import { LanguageToggle } from "./components/LanguageToggle";
 import { ScrollCard } from "./components/ScrollCard";
 
 export interface LandingPageProps {
-  readonly onHost?: () => void;
-  readonly onJoin?: () => void;
+  readonly onStartGame?: () => void;
 }
 
-export function LandingPage({ onHost, onJoin }: LandingPageProps) {
+export function LandingPage({ onStartGame }: LandingPageProps) {
   const { t } = useTranslation();
 
   return (
@@ -16,11 +15,8 @@ export function LandingPage({ onHost, onJoin }: LandingPageProps) {
       <LanguageToggle />
       <LandingScene />
       <ScrollCard>
-        <button type="button" className="btn btn--primary" onClick={onHost}>
-          {t("landing.hostGame")}
-        </button>
-        <button type="button" className="btn btn--secondary" onClick={onJoin}>
-          {t("landing.joinGame")}
+        <button type="button" className="btn btn--primary" onClick={onStartGame}>
+          {t("landing.startGame")}
         </button>
       </ScrollCard>
     </section>

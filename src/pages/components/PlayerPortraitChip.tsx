@@ -1,5 +1,6 @@
 export interface PlayerPortraitChipProps {
   readonly displayName: string;
+  readonly photoUrl?: string;
   readonly selected?: boolean;
   readonly isLeader?: boolean;
   readonly disabled?: boolean;
@@ -8,6 +9,7 @@ export interface PlayerPortraitChipProps {
 
 export function PlayerPortraitChip({
   displayName,
+  photoUrl,
   selected = false,
   isLeader = false,
   disabled = false,
@@ -24,7 +26,15 @@ export function PlayerPortraitChip({
       onClick={onClick}
     >
       <span className="portrait-chip__avatar" aria-hidden="true">
-        {displayName.charAt(0).toUpperCase()}
+        {photoUrl ? (
+          <img
+            src={photoUrl}
+            alt={displayName}
+            className="portrait-chip__photo"
+          />
+        ) : (
+          displayName.charAt(0).toUpperCase()
+        )}
       </span>
       <span className="portrait-chip__name">{displayName}</span>
     </button>

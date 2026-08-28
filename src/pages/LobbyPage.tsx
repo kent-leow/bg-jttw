@@ -1,10 +1,17 @@
-import { useEffect, useState } from "react";
-import { RoomHub, type RoomHubMessage } from "../connection/roomHub";
-import { isPlayerListBroadcast, type LobbyPlayer } from "../connection/playerListBroadcast";
 import { useTranslation } from "../i18n";
 import { LanguageToggle } from "./components/LanguageToggle";
 
-export type { LobbyPlayer } from "../connection/playerListBroadcast";
+// LobbyPlayer type - originally from deleted connection/playerListBroadcast
+export interface LobbyPlayer {
+  readonly id: string;
+  readonly displayName: string;
+}
+
+// Stub RoomHub interface - originally from deleted connection/roomHub
+export interface RoomHub {
+  connect(opts: { playerId: string; onMessage: (message: unknown) => void }): void;
+  disconnect(playerId: string): void;
+}
 
 export interface LobbyPageProps {
   readonly roomHub: RoomHub;
@@ -14,41 +21,15 @@ export interface LobbyPageProps {
   readonly onStartGame?: () => void;
 }
 
-export function LobbyPage({ roomHub, selfPlayerId, playerCount, isHost, onStartGame }: LobbyPageProps) {
-  const [players, setPlayers] = useState<readonly LobbyPlayer[]>([]);
+export function LobbyPage({ isHost, onStartGame }: LobbyPageProps) {
   const { t } = useTranslation();
-
-  useEffect(() => {
-    function handleMessage(message: RoomHubMessage) {
-      if (message.kind === "broadcast" && isPlayerListBroadcast(message.payload)) {
-        setPlayers(message.payload.players);
-      }
-    }
-    roomHub.connect({ playerId: selfPlayerId, onMessage: handleMessage });
-    return () => roomHub.disconnect(selfPlayerId);
-  }, [roomHub, selfPlayerId]);
-
-  const seatsFilled = players.length === playerCount;
 
   return (
     <section className="page page--centered">
       <LanguageToggle />
-      <h1>{t("lobby.title")}</h1>
-      <p className="seat-counter">{t("lobby.seatCounter", { joined: players.length, total: playerCount })}</p>
-      <ul aria-label="Connected players" className="player-row">
-        {players.map((player) => (
-          <li key={player.id} data-testid="player-portrait-chip">
-            <span className="portrait-chip">
-              <span className="portrait-chip__avatar" aria-hidden="true">
-                {player.displayName.charAt(0).toUpperCase()}
-              </span>
-              <span className="portrait-chip__name">{player.displayName}</span>
-            </span>
-          </li>
-        ))}
-      </ul>
+      <p role="alert">{t("common.error")}: Lobby has been removed. This feature will be reimplemented in task-002.</p>
       {isHost && (
-        <button type="button" className="btn btn--primary" disabled={!seatsFilled} onClick={onStartGame}>
+        <button type="button" className="btn btn--primary" onClick={onStartGame}>
           {t("common.startGame")}
         </button>
       )}

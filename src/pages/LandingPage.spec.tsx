@@ -3,11 +3,11 @@ import { describe, expect, it } from "vitest";
 import { LandingPage } from "./LandingPage";
 
 describe("LandingPage", () => {
-  it("renders the Host/Join actions and the language toggle", () => {
+  it("renders a single Start Game action and the language toggle", () => {
     render(<LandingPage />);
 
-    expect(screen.getByRole("button", { name: "Host a Game" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Join a Game" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Start Game" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Join a Game" })).not.toBeInTheDocument();
     expect(screen.getByRole("group", { name: "Language" })).toBeInTheDocument();
   });
 });

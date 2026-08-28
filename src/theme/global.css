@@ -444,3 +444,158 @@ button {
   color: var(--vermillion-dark);
   font-weight: 600;
 }
+
+/* PhotoCapture component styles. */
+.photo-capture-live {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+}
+
+.photo-capture-live__video {
+  width: 100%;
+  max-width: 100%;
+  border-radius: 12px;
+  background: var(--ink-black);
+}
+
+.photo-capture-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+}
+
+.photo-capture-preview__img {
+  width: 100%;
+  max-width: 100%;
+  border-radius: 12px;
+}
+
+.photo-capture-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.photo-capture-canvas {
+  display: none;
+}
+
+/* Portrait chip photo image. */
+.portrait-chip__photo {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Input fields for roster setup. */
+input[type="text"].roster-input {
+  padding: 12px;
+  border: 2px solid var(--imperial-gold);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 1rem;
+  width: 100%;
+  max-width: 100%;
+  background: var(--rice-paper-soft);
+  color: var(--ink-black);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+input[type="text"].roster-input:focus {
+  outline: none;
+  border-color: var(--vermillion);
+  box-shadow: 0 0 0 3px rgba(200, 16, 46, 0.15);
+}
+
+input[type="text"].roster-input::placeholder {
+  color: #a0a0a0;
+}
+
+/* Roster setup form container. */
+.roster-setup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+  width: 100%;
+}
+
+.roster-setup-form__section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  align-items: center;
+}
+
+.roster-setup-form__label {
+  font-weight: 600;
+  color: var(--ink-black);
+}
+
+.roster-setup-form__actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+/* Roster review screen. */
+.roster-review {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  align-items: center;
+}
+
+.roster-review__title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--ink-black);
+}
+
+.roster-review__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  width: 100%;
+}
+
+.roster-review__actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+/* Player count selector. */
+.player-count-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+}
+
+.player-count-selector__title {
+  font-weight: 600;
+  color: var(--ink-black);
+}
+
+.player-count-selector__beads {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}

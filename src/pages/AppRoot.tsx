@@ -1,87 +1,65 @@
-import { useEffect, useState, type ReactElement } from "react";
-import {
-  clearLocalIdentity as defaultClearLocalIdentity,
-  readLocalIdentity as defaultReadLocalIdentity,
-  type LocalIdentity,
-} from "../state/localIdentity";
-import { reestablishConnection, type HostReachabilityCheck } from "../connection/reestablishConnection";
-
-type AppRootStatus = "checking" | "new" | "restored" | "failed";
+import { useEffect, useState } from "react";
+import { readSnapshot, type GameSnapshot } from "../state/localGameSnapshot";
+import { useTranslation } from "../i18n";
 
 export interface AppRootProps {
-  readonly renderNewPlayerEntry: () => ReactElement;
-  readonly renderRestoredState: (currentState: unknown) => ReactElement;
-  readonly readLocalIdentity?: () => LocalIdentity | null;
-  readonly clearLocalIdentity?: () => void;
-  readonly checkHostReachable?: HostReachabilityCheck;
+  readonly onNewSetup?: () => void;
+  readonly onResumedGame?: (snapshot: GameSnapshot) => void;
 }
 
-export function AppRoot({
-  renderNewPlayerEntry,
-  renderRestoredState,
-  readLocalIdentity = defaultReadLocalIdentity,
-  clearLocalIdentity = defaultClearLocalIdentity,
-  checkHostReachable,
-}: AppRootProps) {
-  const [status, setStatus] = useState<AppRootStatus>("checking");
-  const [currentState, setCurrentState] = useState<unknown>(null);
-  const [failureMessage, setFailureMessage] = useState<string | null>(null);
+/**
+ * Renders the initial setup flow for a new game (landing page, host setup, etc.).
+ * This is a placeholder that will be filled in by the integration layer.
+ */
+function renderNewSetup(): React.ReactNode {
+  // For now, return a simple placeholder
+  // The App.tsx will handle routing to the actual setup pages
+  return <div>{/* New game setup flow */}</div>;
+}
+
+/**
+ * Renders the game resumed from a snapshot, continuing from where it left off.
+ * This is a placeholder that will be filled in by the integration layer.
+ */
+function renderResumedGame(snapshot: GameSnapshot): React.ReactNode {
+  // For now, return a simple placeholder
+  // The App.tsx will handle routing to the appropriate game page based on snapshot.roundLoopState.phase
+  return <div>{/* Resume game from snapshot: {JSON.stringify(snapshot, null, 2)} */}</div>;
+}
+
+/**
+ * AppRoot is the main entry point that handles resume logic:
+ * - On mount, checks if a game snapshot exists in localStorage
+ * - If none exists, renders the new game setup flow
+ * - If one exists, renders the resumed game flow
+ */
+export function AppRoot({ onNewSetup, onResumedGame }: AppRootProps) {
+  const [snapshot, setSnapshot] = useState<GameSnapshot | null | undefined>(undefined);
+  const { t } = useTranslation();
 
   useEffect(() => {
-    const identity = readLocalIdentity();
-    if (!identity) {
-      setStatus("new");
-      return;
-    }
-    if (!checkHostReachable) {
-      setStatus("failed");
-      setFailureMessage(
-        "Host unreachable: your connection was lost when the page reloaded, and this app has no backend to reconnect you automatically.",
-      );
-      return;
-    }
-    reestablishConnection(identity.roomId, identity.playerId, checkHostReachable).then((result) => {
-      if (result.reconnected) {
-        setStatus("restored");
-        setCurrentState(result.currentState);
-      } else {
-        setStatus("failed");
-        setFailureMessage(
-          result.message ??
-            "Host unreachable: your connection was lost when the page reloaded, and this app has no backend to reconnect you automatically.",
-        );
-      }
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    // Read snapshot on mount
+    const loadedSnapshot = readSnapshot();
+    setSnapshot(loadedSnapshot);
 
-  if (status === "checking") {
-    return <p role="status">Checking for an existing session…</p>;
+    // Notify parent of which flow was chosen
+    if (loadedSnapshot) {
+      onResumedGame?.(loadedSnapshot);
+    } else {
+      onNewSetup?.();
+    }
+  }, [onNewSetup, onResumedGame]);
+
+  // Still loading
+  if (snapshot === undefined) {
+    return null;
   }
-  if (status === "new") {
-    return renderNewPlayerEntry();
+
+  // No snapshot - start new game
+  if (snapshot === null) {
+    return renderNewSetup();
   }
-  if (status === "restored") {
-    return renderRestoredState(currentState);
-  }
-  // A live WebRTC connection cannot survive a page reload (its RTCPeerConnection/RTCDataChannel
-  // are destroyed with the old JS runtime) — this is unavoidable without a signaling backend, so
-  // give the player an explicit way back in instead of leaving them on inert, dead-end text.
-  return (
-    <section className="page page--centered">
-      <p role="alert" className="alert-text">
-        {failureMessage}
-      </p>
-      <button
-        type="button"
-        className="btn btn--primary"
-        onClick={() => {
-          clearLocalIdentity();
-          setStatus("new");
-        }}
-      >
-        Start Over
-      </button>
-    </section>
-  );
+
+  // Snapshot exists - resume game
+  return renderResumedGame(snapshot);
 }

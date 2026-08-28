@@ -1,73 +1,109 @@
 import { render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { readLocalIdentity, writeLocalIdentity } from "../state/localIdentity";
+import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 import { AppRoot } from "./AppRoot";
+import { writeSnapshot } from "../state/localGameSnapshot";
+import type { GameSnapshot } from "../state/localGameSnapshot";
 
 describe("AppRoot", () => {
   beforeEach(() => {
     localStorage.clear();
   });
 
-  it("routes to the Join/Host entry when no identity is stored", async () => {
-    render(
-      <AppRoot
-        renderNewPlayerEntry={() => <p data-testid="new-player-entry">Join or Host</p>}
-        renderRestoredState={() => <p>restored</p>}
-      />,
-    );
-
-    await waitFor(() => expect(screen.getByTestId("new-player-entry")).toBeInTheDocument());
+  afterEach(() => {
+    localStorage.clear();
   });
 
-  it("restores the correct in-progress page when a stored identity + reachable host is found", async () => {
-    writeLocalIdentity({ playerId: "p1", roomId: "room-1", lastKnownState: null });
-    const checkHostReachable = vi.fn().mockResolvedValue({ reachable: true, currentState: { phase: "TeamVote" } });
+  it("renders new-setup path when no snapshot exists", async () => {
+    const onNewSetup = vi.fn();
+    const onResumedGame = vi.fn();
 
-    render(
-      <AppRoot
-        renderNewPlayerEntry={() => <p>new</p>}
-        renderRestoredState={(state) => <p data-testid="restored-state">{JSON.stringify(state)}</p>}
-        checkHostReachable={checkHostReachable}
-      />,
-    );
+    render(<AppRoot onNewSetup={onNewSetup} onResumedGame={onResumedGame} />);
 
-    await waitFor(() =>
-      expect(screen.getByTestId("restored-state")).toHaveTextContent(JSON.stringify({ phase: "TeamVote" })),
-    );
+    await waitFor(() => {
+      expect(onNewSetup).toHaveBeenCalledTimes(1);
+    });
+
+    expect(onResumedGame).not.toHaveBeenCalled();
   });
 
-  it("shows the reconnect-failed message when a stored identity + unreachable host is found", async () => {
-    writeLocalIdentity({ playerId: "p1", roomId: "room-1", lastKnownState: null });
-    const checkHostReachable = vi.fn().mockResolvedValue({ reachable: false });
+  it("renders resumed-game path when a snapshot exists", async () => {
+    const snapshot: GameSnapshot = {
+      roster: [
+        { id: "p1", displayName: "Alice" },
+        { id: "p2", displayName: "Bob" },
+        { id: "p3", displayName: "Charlie" },
+        { id: "p4", displayName: "Diana" },
+        { id: "p5", displayName: "Eve" },
+      ],
+      roleAssignments: [
+        { playerId: "p1", role: { name: "Merlin", alignment: "Good" } },
+        { playerId: "p2", role: { name: "Percival", alignment: "Good" } },
+        { playerId: "p3", role: { name: "Morgana", alignment: "Evil" } },
+        { playerId: "p4", role: { name: "Assassin", alignment: "Evil" } },
+        { playerId: "p5", role: { name: "LoyalServant", alignment: "Good" } },
+      ],
+      roundLoopState: {
+        roleAssignments: [
+          { playerId: "p1", role: { name: "Merlin", alignment: "Good" } },
+          { playerId: "p2", role: { name: "Percival", alignment: "Good" } },
+          { playerId: "p3", role: { name: "Morgana", alignment: "Evil" } },
+          { playerId: "p4", role: { name: "Assassin", alignment: "Evil" } },
+          { playerId: "p5", role: { name: "LoyalServant", alignment: "Good" } },
+        ],
+        playerCount: 5 as const,
+        leaderIndex: 0,
+        missionNumber: 1,
+        rejectionCount: 0,
+        missionResults: [],
+        phase: "TeamProposal",
+        result: null,
+      },
+    };
 
-    render(
-      <AppRoot
-        renderNewPlayerEntry={() => <p>new</p>}
-        renderRestoredState={() => <p>restored</p>}
-        checkHostReachable={checkHostReachable}
-      />,
-    );
+    writeSnapshot(snapshot);
 
-    await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent(/host unreachable/i));
+    const onNewSetup = vi.fn();
+    const onResumedGame = vi.fn();
+
+    render(<AppRoot onNewSetup={onNewSetup} onResumedGame={onResumedGame} />);
+
+    await waitFor(() => {
+      expect(onResumedGame).toHaveBeenCalledTimes(1);
+      expect(onResumedGame).toHaveBeenCalledWith(snapshot);
+    });
+
+    expect(onNewSetup).not.toHaveBeenCalled();
   });
 
-  it("lets the player start over instead of being stuck on the reconnect-failed message", async () => {
-    writeLocalIdentity({ playerId: "p1", roomId: "room-1", lastKnownState: null });
-    const checkHostReachable = vi.fn().mockResolvedValue({ reachable: false });
+  it("falls back to new-setup without throwing when snapshot is corrupt", async () => {
+    // Set corrupt data in localStorage
+    localStorage.setItem("pass-and-play-game-snapshot", "{invalid json");
 
-    render(
-      <AppRoot
-        renderNewPlayerEntry={() => <p data-testid="new-player-entry">new</p>}
-        renderRestoredState={() => <p>restored</p>}
-        checkHostReachable={checkHostReachable}
-      />,
-    );
+    const onNewSetup = vi.fn();
+    const onResumedGame = vi.fn();
 
-    await waitFor(() => expect(screen.getByRole("alert")).toBeInTheDocument());
-    await userEvent.click(screen.getByRole("button", { name: "Start Over" }));
+    // Should not throw
+    render(<AppRoot onNewSetup={onNewSetup} onResumedGame={onResumedGame} />);
 
-    expect(screen.getByTestId("new-player-entry")).toBeInTheDocument();
-    expect(readLocalIdentity()).toBeNull();
+    await waitFor(() => {
+      expect(onNewSetup).toHaveBeenCalledTimes(1);
+    });
+
+    expect(onResumedGame).not.toHaveBeenCalled();
+  });
+
+  it("falls back to new-setup when stored data lacks required fields", async () => {
+    localStorage.setItem("pass-and-play-game-snapshot", JSON.stringify({ foo: "bar" }));
+
+    const onNewSetup = vi.fn();
+    const onResumedGame = vi.fn();
+
+    render(<AppRoot onNewSetup={onNewSetup} onResumedGame={onResumedGame} />);
+
+    await waitFor(() => {
+      expect(onNewSetup).toHaveBeenCalledTimes(1);
+    });
+
+    expect(onResumedGame).not.toHaveBeenCalled();
   });
 });
