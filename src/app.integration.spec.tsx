@@ -288,6 +288,25 @@ describe("Full-playthrough integration", () => {
       expect(new Set(results).size).toBe(1);
       expect(results[0]).toMatch(/GoodWin|EvilWin/);
 
+      // ---- Every device reveals every player's true role identically (not just its own) ----
+      const revealedRoleSets = allInstances.map((instance) =>
+        q(instance)
+          .getAllByTestId("revealed-role")
+          .map((el) => el.textContent)
+          .sort(),
+      );
+      for (const revealedRoles of revealedRoleSets) {
+        expect(revealedRoles).toHaveLength(allInstances.length);
+      }
+      const [firstRevealedRoles, ...restRevealedRoles] = revealedRoleSets;
+      for (const revealedRoles of restRevealedRoles) {
+        expect(revealedRoles).toEqual(firstRevealedRoles);
+      }
+      // Every role in the roleAssignments pool must actually appear (not the "LoyalServant"
+      // placeholder that this reveal used to silently fall back to for every other player).
+      expect(firstRevealedRoles!.some((text) => text?.includes("Merlin"))).toBe(true);
+      expect(firstRevealedRoles!.some((text) => text?.includes("Assassin"))).toBe(true);
+
       // ---- AC9: rematch reaches role reveal for all players, with no player re-scanning a QR code ----
       await userEvent.click(q(host).getByRole("button", { name: "Rematch" }));
       for (const instance of allInstances) {

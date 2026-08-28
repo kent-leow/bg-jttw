@@ -5,6 +5,7 @@ import { endSession } from "./connection/endSession";
 import { generateHostOffer, type HostOfferResult } from "./connection/generateHostOffer";
 import { generateJoinAnswer, type JoinAnswerResult } from "./connection/generateJoinAnswer";
 import { HostOrchestrator, type HostOrchestratorPlayer, type PublicGameStateView } from "./connection/hostOrchestrator";
+import { isPlayerListBroadcast } from "./connection/playerListBroadcast";
 import type { HostReachabilityCheck } from "./connection/reestablishConnection";
 import { RoomHub, type RoomHubMessage } from "./connection/roomHub";
 import { generateKeyPair } from "./crypto/keyPair";
@@ -160,10 +161,14 @@ function GameChrome({
   }
 
   if (gameState.result) {
+    const roleByPlayerId = new Map(gameState.revealedRoles?.map((a) => [a.playerId, a.role]) ?? []);
     const revealedPlayers: RevealedPlayer[] = players.map((p) => ({
       id: p.id,
       displayName: p.displayName,
-      role: p.id === selfPlayerId ? roleInfo.role : { name: "LoyalServant", alignment: "Good" },
+      // The host broadcasts every true role once the game ends; fall back to this device's own
+      // role (and a neutral placeholder for everyone else) only if that broadcast is unexpectedly
+      // missing, so the page never crashes on a malformed/legacy payload.
+      role: roleByPlayerId.get(p.id) ?? (p.id === selfPlayerId ? roleInfo.role : { name: "LoyalServant", alignment: "Good" }),
     }));
     return (
       <EndGamePage
@@ -528,6 +533,23 @@ function JoinFlowInGame({
     transport,
   });
 
+  // The Lobby's playerList broadcast carries the only friendly display names ("Host", "Player 2"
+  // ...); LobbyPage itself only lives for the pre-game phase, so this listens independently, for
+  // this component's whole lifetime, to avoid falling back to raw player-id UUIDs once in-game.
+  const [displayNameById, setDisplayNameById] = useState<Readonly<Record<string, string>>>({});
+  useEffect(() => {
+    const observerId = `${connected.playerId}:display-names`;
+    connected.localHub.connect({
+      playerId: observerId,
+      onMessage: (message) => {
+        if (message.kind === "broadcast" && isPlayerListBroadcast(message.payload)) {
+          setDisplayNameById(Object.fromEntries(message.payload.players.map((p) => [p.id, p.displayName])));
+        }
+      },
+    });
+    return () => connected.localHub.disconnect(observerId);
+  }, [connected.localHub, connected.playerId]);
+
   // Persist the latest known page so a mid-game reload can restore it (gameplay.md Flow 7); the
   // actual live connection cannot survive a reload, so this is a read-only snapshot restore.
   useEffect(() => {
@@ -542,7 +564,10 @@ function JoinFlowInGame({
     });
   }, [connected.playerId, hookResult.gameState, hookResult.roleInfo]);
 
-  const players: LobbyPlayer[] = (hookResult.gameState?.players ?? []).map((id) => ({ id, displayName: id }));
+  const players: LobbyPlayer[] = (hookResult.gameState?.players ?? []).map((id) => ({
+    id,
+    displayName: displayNameById[id] ?? id,
+  }));
 
   if (hookResult.sessionEnded) {
     return (

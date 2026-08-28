@@ -35,6 +35,9 @@ export interface PublicGameStateView {
   readonly missionResults: readonly ("Success" | "Fail")[];
   readonly result: RoundLoopState["result"];
   readonly resultReason?: string;
+  // Every player's true role, revealed only once the game has actually ended (GameOver) — hidden
+  // beforehand since it would otherwise leak the private information the whole game hinges on.
+  readonly revealedRoles?: readonly RoleAssignment[];
 }
 
 /**
@@ -105,6 +108,7 @@ export class HostOrchestrator {
       missionResults: state.missionResults,
       result: state.result,
       resultReason: state.resultReason,
+      revealedRoles: state.result ? this.roleAssignments : undefined,
     };
   }
 

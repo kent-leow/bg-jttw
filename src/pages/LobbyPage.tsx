@@ -1,26 +1,10 @@
 import { useEffect, useState } from "react";
 import { RoomHub, type RoomHubMessage } from "../connection/roomHub";
+import { isPlayerListBroadcast, type LobbyPlayer } from "../connection/playerListBroadcast";
 import { useTranslation } from "../i18n";
 import { LanguageToggle } from "./components/LanguageToggle";
 
-export interface LobbyPlayer {
-  readonly id: string;
-  readonly displayName: string;
-}
-
-interface PlayerListBroadcast {
-  readonly kind: "playerList";
-  readonly players: readonly LobbyPlayer[];
-}
-
-function isPlayerListBroadcast(payload: unknown): payload is PlayerListBroadcast {
-  return (
-    typeof payload === "object" &&
-    payload !== null &&
-    (payload as Partial<PlayerListBroadcast>).kind === "playerList" &&
-    Array.isArray((payload as Partial<PlayerListBroadcast>).players)
-  );
-}
+export type { LobbyPlayer } from "../connection/playerListBroadcast";
 
 export interface LobbyPageProps {
   readonly roomHub: RoomHub;
